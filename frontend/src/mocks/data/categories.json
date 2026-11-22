@@ -1,0 +1,14 @@
+[
+  { "id": 1, "name": "Sparklers", "slug": "sparklers", "description": "Hand-held sparklers in electric, colour and gold varieties.", "displayOrder": 1, "active": true },
+  { "id": 2, "name": "Flower Pots", "slug": "flower-pots", "description": "Ground fountains that shower colourful sparks.", "displayOrder": 2, "active": true },
+  { "id": 3, "name": "Ground Chakkars", "slug": "ground-chakkars", "description": "Spinning wheels that whirl on the ground.", "displayOrder": 3, "active": true },
+  { "id": 4, "name": "Rockets", "slug": "rockets", "description": "Sky rockets with colour, whistle and sound effects.", "displayOrder": 4, "active": true },
+  { "id": 5, "name": "Single Sound Crackers", "slug": "single-sound", "description": "Classic one-sound crackers and bijili.", "displayOrder": 5, "active": true },
+  { "id": 6, "name": "Bombs", "slug": "bombs", "description": "Bigger-sound crackers for experienced adults.", "displayOrder": 6, "active": true },
+  { "id": 7, "name": "Garlands & Walas", "slug": "garlands", "description": "Chain crackers from 100 to 5000 walas.", "displayOrder": 7, "active": true },
+  { "id": 8, "name": "Aerial Shots", "slug": "aerial-shots", "description": "Multi-shot sky displays with colour bursts.", "displayOrder": 8, "active": true },
+  { "id": 9, "name": "Fancy Fountains", "slug": "fountains", "description": "Decorative fountains with special effects.", "displayOrder": 9, "active": true },
+  { "id": 10, "name": "Kids Specials", "slug": "kids-specials", "description": "Low-noise novelty items for children under adult supervision.", "displayOrder": 10, "active": true },
+  { "id": 11, "name": "Pencils & Twinklers", "slug": "pencils", "description": "Colour pencils and twinkling stars.", "displayOrder": 11, "active": true },
+  { "id": 12, "name": "Gift Boxes", "slug": "gift-boxes", "description": "Assorted family and kids combo boxes.", "displayOrder": 12, "active": true }
+]

@@ -1,0 +1,43 @@
+{
+  "shopName": "SIVA Crackers",
+  "tagline": "Family-owned crackers shop in Eachanari, Coimbatore",
+  "address": {
+    "line1": null,
+    "area": "Eachanari",
+    "city": "Coimbatore",
+    "state": "Tamil Nadu",
+    "pincode": null
+  },
+  "phone": null,
+  "alternatePhone": null,
+  "whatsappNumber": null,
+  "whatsappEnquiryEnabled": true,
+  "email": null,
+  "businessHours": null,
+  "mapEmbedUrl": "https://www.google.com/maps?q=Eachanari,+Coimbatore,+Tamil+Nadu&output=embed",
+  "mapIsApproximate": true,
+  "licenceDetails": null,
+  "announcement": {
+    "active": true,
+    "text": "Browse our crackers range online · Prices shown are indicative · All purchases are made in person at our Eachanari shop"
+  },
+  "aboutText": "SIVA Crackers is a family-owned crackers retail shop in Eachanari, Coimbatore. Use this website to explore our range, compare indicative prices and plan your list before you visit the shop.",
+  "highlights": [
+    { "title": "Family-owned shop", "text": "A local, family-run crackers shop in Eachanari, Coimbatore." },
+    { "title": "Browse before you visit", "text": "See categories, brands and indicative prices from home." },
+    { "title": "Safety first", "text": "Safety guidance with every product. Please celebrate responsibly." },
+    { "title": "Buy in person", "text": "All purchases happen at the shop counter, as required by law." }
+  ],
+  "priceDisclaimer": "Prices shown are indicative only and may change without notice. Please confirm the final price at the shop.",
+  "legalNotice": "This website is an information catalogue only. SIVA Crackers does not sell, book, accept payment for, or deliver firecrackers online. All purchases are made in person at our shop, subject to applicable laws and local regulations.",
+  "whatsappNotice": "WhatsApp is for general product enquiries only. We do not take, confirm or process firecracker orders over WhatsApp.",
+  "safetyTips": [
+    "Always have an adult present. Children must be supervised at all times.",
+    "Use crackers only in open spaces, away from buildings, vehicles and dry grass.",
+    "Keep a bucket of water or sand nearby.",
+    "Light at arm's length and step back immediately. Never lean over a cracker.",
+    "Never try to relight a cracker that did not go off. Soak it in water.",
+    "Wear cotton clothes and footwear. Avoid loose synthetic clothing.",
+    "Follow the timings and rules set by local authorities."
+  ]
+}

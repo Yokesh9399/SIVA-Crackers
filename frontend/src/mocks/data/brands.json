@@ -1,0 +1,10 @@
+[
+  { "isDemo": true, "id": 1, "name": "Aruvi Fireworks", "slug": "aruvi-fireworks", "description": "Fictional brand used for demonstration only", "displayOrder": 1, "active": true },
+  { "isDemo": true, "id": 2, "name": "Kovai Star", "slug": "kovai-star", "description": "Fictional brand used for demonstration only", "displayOrder": 2, "active": true },
+  { "isDemo": true, "id": 3, "name": "Thendral Pyro", "slug": "thendral-pyro", "description": "Fictional brand used for demonstration only", "displayOrder": 3, "active": true },
+  { "isDemo": true, "id": 4, "name": "Nilavu Crackers", "slug": "nilavu-crackers", "description": "Fictional brand used for demonstration only", "displayOrder": 4, "active": true },
+  { "isDemo": true, "id": 5, "name": "Megha Sparkles", "slug": "megha-sparkles", "description": "Fictional brand used for demonstration only", "displayOrder": 5, "active": true },
+  { "isDemo": true, "id": 6, "name": "Vaanam Fireworks", "slug": "vaanam-fireworks", "description": "Fictional brand used for demonstration only", "displayOrder": 6, "active": true },
+  { "isDemo": true, "id": 7, "name": "Minnal Pyro", "slug": "minnal-pyro", "description": "Fictional brand used for demonstration only", "displayOrder": 7, "active": true },
+  { "isDemo": true, "id": 8, "name": "Poonga Fireworks", "slug": "poonga-fireworks", "description": "Fictional brand used for demonstration only", "displayOrder": 8, "active": true }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "eyebrow": "SIVA Crackers · Eachanari",
+    "title": "Light up every celebration",
+    "subtitle": "Explore sparklers, flower pots, aerial shots and gift boxes, all in one place.",
+    "ctaLabel": "Browse products",
+    "ctaLink": "/products",
+    "theme": "gold"
+  },
+  {
+    "id": 2,
+    "eyebrow": "Plan before you visit",
+    "title": "Check indicative prices from home",
+    "subtitle": "Use our category-wise price list to plan your list, then visit the shop to buy in person.",
+    "ctaLabel": "View price list",
+    "ctaLink": "/price-list",
+    "theme": "orange"
+  },
+  {
+    "id": 3,
+    "eyebrow": "Celebrate responsibly",
+    "title": "Safety comes first",
+    "subtitle": "Simple safety tips for a happy, accident-free festival for your family and neighbours.",
+    "ctaLabel": "Read safety tips",
+    "ctaLink": "/safety",
+    "theme": "blue"
+  }
+]

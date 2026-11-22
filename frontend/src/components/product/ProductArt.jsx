@@ -144,19 +144,28 @@ const SHAPES = {
   ),
 };
 
+// Alternate looks for the product gallery until real photos are uploaded:
+// 0 = standard, 1 = close-up, 2 = warm night-sky background.
+const VARIANTS = [
+  { from: '#2A3B74', to: '#0B1636', transform: undefined },
+  { from: '#1B2A5C', to: '#070E24', transform: 'translate(100 100) scale(1.45) translate(-100 -100)' },
+  { from: '#5A2A1A', to: '#120A1E', transform: 'translate(100 104) scale(0.9) translate(-100 -100)' },
+];
+
 /**
  * Product image placeholder. Pass the category slug to pick the drawing.
- * When a product has real images, ProductCard shows those instead.
+ * When a product has real images, ProductCard / ProductGallery show those instead.
  */
-export default function ProductArt({ categorySlug, label, className = '' }) {
+export default function ProductArt({ categorySlug, label, className = '', variant = 0 }) {
   const gradientId = useId();
   const Shape = SHAPES[categorySlug] ?? SHAPES['gift-boxes'];
+  const look = VARIANTS[variant % VARIANTS.length];
   return (
     <svg viewBox="0 0 200 200" className={className} role="img" aria-label={label ?? 'Product illustration'}>
       <defs>
         <radialGradient id={gradientId} cx="50%" cy="40%" r="75%">
-          <stop offset="0%" stopColor="#2A3B74" />
-          <stop offset="100%" stopColor="#0B1636" />
+          <stop offset="0%" stopColor={look.from} />
+          <stop offset="100%" stopColor={look.to} />
         </radialGradient>
       </defs>
       <rect width="200" height="200" fill={`url(#${gradientId})`} />
@@ -164,7 +173,9 @@ export default function ProductArt({ categorySlug, label, className = '' }) {
       <circle cx="170" cy="40" r="1.4" fill={CREAM} opacity="0.5" />
       <circle cx="160" cy="170" r="1.6" fill={CREAM} opacity="0.4" />
       <circle cx="25" cy="150" r="1.2" fill={CREAM} opacity="0.5" />
-      <Shape />
+      <g transform={look.transform}>
+        <Shape />
+      </g>
     </svg>
   );
 }

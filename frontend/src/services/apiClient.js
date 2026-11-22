@@ -21,7 +21,9 @@ apiClient.interceptors.response.use(
   (error) => {
     const message =
       error.response?.data?.message ?? (error.request ? 'Unable to reach the server. Please try again.' : error.message);
-    return Promise.reject(new Error(message));
+    const wrapped = new Error(message);
+    wrapped.status = error.response?.status; // e.g. 404 → page shows "not found"
+    return Promise.reject(wrapped);
   },
 );
 

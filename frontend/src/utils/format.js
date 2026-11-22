@@ -22,6 +22,18 @@ export function formatAddress(address) {
   return [line1, area, cityLine, state].filter(Boolean).join(', ');
 }
 
+const UNIT_LABELS = { BOX: 'Box', PACKET: 'Packet', PIECE: 'Piece', BUNDLE: 'Bundle' };
+
+/** BOX → "Box" */
+export function formatUnit(unit) {
+  return UNIT_LABELS[unit] ?? unit ?? '';
+}
+
+/** 22 Nov 2026 */
+export function formatDate(date = new Date()) {
+  return new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
+}
+
 /** Digits only, for tel: links. */
 export function telHref(phone) {
   return phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : undefined;

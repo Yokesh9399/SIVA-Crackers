@@ -20,14 +20,21 @@ export default function MainLayout() {
       <a href="#main" className="sr-only z-50 rounded bg-gold-400 px-4 py-2 text-navy-900 focus:not-sr-only focus:fixed focus:top-2 focus:left-2">
         Skip to content
       </a>
-      <AnnouncementBar />
+      {/* Site chrome is hidden on paper; printable pages render their own PrintHeader. */}
+      <div className="print:hidden">
+        <AnnouncementBar />
+      </div>
       <Header />
-      <DemoDataNotice />
+      <div className="print:hidden">
+        <DemoDataNotice />
+      </div>
       <main id="main" className="flex-1">
         <Outlet />
       </main>
-      <LegalNotice />
-      <Footer />
+      <div className="print:hidden">
+        <LegalNotice />
+        <Footer />
+      </div>
     </div>
   );
 }

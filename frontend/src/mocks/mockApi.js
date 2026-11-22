@@ -44,6 +44,17 @@ function toProductDto(p) {
 }
 
 const allProducts = productsData.map(toProductDto);
+const productBySlug = new Map(allProducts.map((p) => [p.slug, p]));
+
+class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'NotFoundError';
+    this.status = 404;
+  }
+}
+
+const reject = (error) => new Promise((_, rejectFn) => setTimeout(() => rejectFn(error), LATENCY_MS));
 
 const categoryOrder = (p) => categoryById.get(p.category.id)?.displayOrder ?? 999;
 
@@ -118,6 +129,45 @@ export function getFeaturedProducts(limit = 8) {
 /** Mirrors GET /api/public/products/new-arrivals */
 export function getNewArrivals(limit = 8) {
   return delay([...allProducts].sort(SORTERS.newest).slice(0, limit));
+}
+
+/**
+ * Mirrors GET /api/public/products/{slug} – full ProductDetailDTO.
+ * Adds category safety notes. Rejects with status 404 for unknown slugs.
+ */
+export function getProductBySlug(slug) {
+  const product = productBySlug.get(slug);
+  if (!product) return reject(new NotFoundError(`Product "${slug}" not found`));
+  const category = categoryById.get(product.category.id);
+  return delay({ ...product, category: { ...product.category, description: category.description }, safetyNotes: category.safetyNotes ?? [] });
+}
+
+/** Mirrors GET /api/public/products/{slug}/related – same category first, then same brand. */
+export function getRelatedProducts(slug, limit = 4) {
+  const product = productBySlug.get(slug);
+  if (!product) return delay([]);
+  const others = allProducts.filter((p) => p.slug !== slug);
+  const sameCategory = others.filter((p) => p.category.id === product.category.id);
+  const sameBrand = others.filter((p) => p.brand.id === product.brand.id && p.category.id !== product.category.id);
+  return delay([...sameCategory, ...sameBrand].slice(0, limit));
+}
+
+/** Mirrors GET /api/public/products?slugs=a,b – used by the Estimate List. Unknown slugs are skipped. */
+export function getProductsBySlugs(slugs = []) {
+  return delay(slugs.map((s) => productBySlug.get(s)).filter(Boolean));
+}
+
+/** Mirrors GET /api/public/price-list – every product grouped by category, in display order. */
+export function getPriceList() {
+  const groups = [...categoriesData]
+    .filter((c) => c.active)
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map((c) => ({
+      category: { id: c.id, name: c.name, slug: c.slug },
+      products: allProducts.filter((p) => p.category.id === c.id).sort(SORTERS.default),
+    }))
+    .filter((g) => g.products.length > 0);
+  return delay(groups);
 }
 
 /** Mirrors GET /api/public/price-range – lowest and highest indicative price. */

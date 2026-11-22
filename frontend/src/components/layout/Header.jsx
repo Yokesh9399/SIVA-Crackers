@@ -4,6 +4,7 @@ import { Menu, Search, UserRound, ClipboardList } from 'lucide-react';
 import Logo from './Logo.jsx';
 import MobileMenu from './MobileMenu.jsx';
 import { NAV_LINKS } from '../../utils/constants.js';
+import { useEstimate } from '../../hooks/useEstimate.js';
 
 /** Sticky site header: logo, search, account links, desktop nav and the mobile menu trigger. */
 export default function Header() {
@@ -11,6 +12,7 @@ export default function Header() {
   const [query, setQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { count: estimateCount } = useEstimate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -26,7 +28,7 @@ export default function Header() {
   };
 
   return (
-    <header className={`sticky top-0 z-40 bg-navy-900/95 backdrop-blur transition-shadow ${scrolled ? 'shadow-lg shadow-navy-950/30' : ''}`}>
+    <header className={`sticky top-0 z-40 print:hidden bg-navy-900/95 backdrop-blur transition-shadow ${scrolled ? 'shadow-lg shadow-navy-950/30' : ''}`}>
       <div className="container-page flex h-16 items-center gap-2 sm:gap-3 lg:h-[4.5rem]">
         <button
           type="button"
@@ -60,11 +62,17 @@ export default function Header() {
         <div className="ml-auto flex shrink-0 items-center gap-1 md:ml-0">
           <NavLink
             to="/estimate"
-            className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white sm:inline-flex"
+            className="relative hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white sm:inline-flex"
             title="My Estimate List (for your reference only)"
+            aria-label={`My Estimate List${estimateCount ? `, ${estimateCount} items` : ''}`}
           >
             <ClipboardList className="size-5" aria-hidden="true" />
             <span className="hidden xl:inline">Estimate</span>
+            {estimateCount > 0 && (
+              <span className="absolute top-0.5 left-6 grid size-4.5 place-items-center rounded-full bg-orange-500 text-[0.6rem] font-bold text-white xl:static xl:size-5">
+                {estimateCount}
+              </span>
+            )}
           </NavLink>
           <NavLink to="/login" className="btn-gold px-3 py-2 sm:px-5">
             <UserRound className="size-4" aria-hidden="true" />

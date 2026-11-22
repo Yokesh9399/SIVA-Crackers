@@ -47,8 +47,9 @@ export default function ProductCard({ product }) {
       </Link>
 
       <div className="flex flex-1 flex-col p-3.5 sm:p-4">
-        <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-[0.7rem] font-semibold tracking-wider text-orange-600 uppercase">{brand.name}</p>
+        {/* wraps the stock badge below the brand on narrow (2-column phone) cards */}
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          <p className="min-w-0 truncate text-[0.7rem] font-semibold tracking-wider text-orange-600 uppercase">{brand.name}</p>
           <StockBadge status={stockStatus} />
         </div>
 
@@ -66,11 +67,11 @@ export default function ProductCard({ product }) {
         <div className="mt-auto grid gap-2 pt-4">
           <Link
             to={detailPath}
-            className="btn border border-navy-900/15 py-2 text-navy-900 hover:border-navy-900 hover:bg-navy-900 hover:text-white"
+            className="btn border border-navy-900/15 px-2 py-2 text-[0.8rem] whitespace-nowrap text-navy-900 hover:border-navy-900 hover:bg-navy-900 hover:text-white sm:px-5 sm:text-sm"
           >
             <Eye className="size-4" aria-hidden="true" /> View details
           </Link>
-          <WhatsAppEnquiryButton product={product} label="Enquire" className="py-2" />
+          <WhatsAppEnquiryButton product={product} label="Enquire" className="px-2 py-2 text-[0.8rem] sm:px-5 sm:text-sm" />
         </div>
       </div>
     </article>

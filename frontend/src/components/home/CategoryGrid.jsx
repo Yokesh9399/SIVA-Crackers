@@ -5,17 +5,26 @@ import Skeleton from '../ui/Skeleton.jsx';
 import ErrorState from '../ui/ErrorState.jsx';
 import Reveal from '../ui/Reveal.jsx';
 
-/** "Shop by category" tiles. */
-export default function CategoryGrid({ categories, loading, error, onRetry }) {
+/**
+ * "Shop by category" tiles. Homepage shows the heading; the Categories page
+ * reuses the grid with showHeading={false} under its own page header.
+ */
+export default function CategoryGrid({ categories, loading, error, onRetry, showHeading = true }) {
   return (
-    <section className="container-page py-14 sm:py-20" aria-labelledby="categories-heading">
-      <SectionHeading
-        eyebrow="Browse"
-        title={<span id="categories-heading">Shop by category</span>}
-        subtitle="From sparklers for the little ones to grand aerial shots, find what you need for your celebration."
-        actionLabel="All categories"
-        actionTo="/categories"
-      />
+    <section
+      className={`container-page ${showHeading ? 'py-14 sm:py-20' : 'py-10'}`}
+      aria-labelledby={showHeading ? 'categories-heading' : undefined}
+      aria-label={showHeading ? undefined : 'All categories'}
+    >
+      {showHeading && (
+        <SectionHeading
+          eyebrow="Browse"
+          title={<span id="categories-heading">Shop by category</span>}
+          subtitle="From sparklers for the little ones to grand aerial shots, find what you need for your celebration."
+          actionLabel="All categories"
+          actionTo="/categories"
+        />
+      )}
 
       {error && <ErrorState onRetry={onRetry} />}
 

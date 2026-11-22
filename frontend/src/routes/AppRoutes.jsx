@@ -7,16 +7,16 @@ import PageLoader from '../components/ui/PageLoader.jsx';
 // Pages other than Home are lazy-loaded so the first page load stays small.
 const ComingSoonPage = lazy(() => import('../pages/ComingSoonPage.jsx'));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage.jsx'));
+const ProductsPage = lazy(() => import('../pages/ProductsPage.jsx'));
+const CategoriesPage = lazy(() => import('../pages/CategoriesPage.jsx'));
+const CategoryProductsPage = lazy(() => import('../pages/CategoryProductsPage.jsx'));
+const BrandsPage = lazy(() => import('../pages/BrandsPage.jsx'));
+const BrandProductsPage = lazy(() => import('../pages/BrandProductsPage.jsx'));
 
 // Routes for pages that are built in later phases. They show a friendly
 // placeholder for now so every navigation link already works.
 const UPCOMING = [
-  { path: 'products', title: 'All Products', phase: 2 },
   { path: 'products/:slug', title: 'Product Details', phase: 3 },
-  { path: 'categories', title: 'Categories', phase: 2 },
-  { path: 'categories/:slug', title: 'Category Products', phase: 2 },
-  { path: 'brands', title: 'Brands', phase: 2 },
-  { path: 'brands/:slug', title: 'Brand Products', phase: 2 },
   { path: 'price-list', title: 'Price List', phase: 3 },
   { path: 'about', title: 'About Us', phase: 3 },
   { path: 'contact', title: 'Contact Us', phase: 3 },
@@ -33,6 +33,11 @@ export default function AppRoutes() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route index element={<HomePage />} />
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="categories/:slug" element={<CategoryProductsPage />} />
+          <Route path="brands" element={<BrandsPage />} />
+          <Route path="brands/:slug" element={<BrandProductsPage />} />
           {UPCOMING.map(({ path, title, phase }) => (
             <Route key={path} path={path} element={<ComingSoonPage title={title} phase={phase} />} />
           ))}

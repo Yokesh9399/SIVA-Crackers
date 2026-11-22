@@ -45,43 +45,63 @@ function toProductDto(p) {
 
 const allProducts = productsData.map(toProductDto);
 
+const categoryOrder = (p) => categoryById.get(p.category.id)?.displayOrder ?? 999;
+
 const SORTERS = {
+  // Default: grouped by category (shop's display order), then product order within it.
+  default: (a, b) => categoryOrder(a) - categoryOrder(b) || a.id - b.id,
   'name,asc': (a, b) => a.name.localeCompare(b.name),
   'name,desc': (a, b) => b.name.localeCompare(a.name),
-  'price,asc': (a, b) => a.price - b.price,
-  'price,desc': (a, b) => b.price - a.price,
+  'price,asc': (a, b) => a.price - b.price || a.name.localeCompare(b.name),
+  'price,desc': (a, b) => b.price - a.price || a.name.localeCompare(b.name),
   newest: (a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id,
 };
 
+/** Every word typed must appear in the product name, brand name or category name. */
+function matchesSearch(product, search) {
+  const words = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return true;
+  const haystack = `${product.name} ${product.brand.name} ${product.category.name}`.toLowerCase();
+  return words.every((w) => haystack.includes(w));
+}
+
 /**
  * Mirrors GET /api/public/products
- * @param {object} params search, categoryIds[], brandIds[], minPrice, maxPrice, inStock, sort, page (0-based), size
+ * @param {object} params
+ *   search      text matched against product, brand and category names
+ *   categories  array of category slugs (OR within the list)
+ *   brands      array of brand slugs (OR within the list)
+ *   minPrice / maxPrice  indicative price bounds (inclusive)
+ *   inStock     true = hide out-of-stock items
+ *   sort        default | name,asc | name,desc | price,asc | price,desc | newest
+ *   page        0-based page index
+ *   size        page size
+ * Different filter types combine with AND.
  */
 export function getProducts(params = {}) {
   const {
     search = '',
-    categoryIds = [],
-    brandIds = [],
+    categories = [],
+    brands = [],
     minPrice,
     maxPrice,
     inStock = false,
-    sort = 'name,asc',
+    sort = 'default',
     page = 0,
     size = 12,
   } = params;
 
-  const term = search.trim().toLowerCase();
   let list = allProducts.filter((p) => {
-    if (term && !p.name.toLowerCase().includes(term)) return false;
-    if (categoryIds.length && !categoryIds.includes(p.category.id)) return false;
-    if (brandIds.length && !brandIds.includes(p.brand.id)) return false;
+    if (!matchesSearch(p, search)) return false;
+    if (categories.length && !categories.includes(p.category.slug)) return false;
+    if (brands.length && !brands.includes(p.brand.slug)) return false;
     if (minPrice != null && p.price < minPrice) return false;
     if (maxPrice != null && p.price > maxPrice) return false;
     if (inStock && p.stockStatus === 'OUT_OF_STOCK') return false;
     return true;
   });
 
-  list = [...list].sort(SORTERS[sort] ?? SORTERS['name,asc']);
+  list = [...list].sort(SORTERS[sort] ?? SORTERS.default);
 
   const totalElements = list.length;
   const totalPages = Math.max(1, Math.ceil(totalElements / size));
@@ -98,6 +118,12 @@ export function getFeaturedProducts(limit = 8) {
 /** Mirrors GET /api/public/products/new-arrivals */
 export function getNewArrivals(limit = 8) {
   return delay([...allProducts].sort(SORTERS.newest).slice(0, limit));
+}
+
+/** Mirrors GET /api/public/price-range – lowest and highest indicative price. */
+export function getPriceRange() {
+  const prices = allProducts.map((p) => p.price);
+  return delay({ min: Math.min(...prices), max: Math.max(...prices) });
 }
 
 /** Mirrors GET /api/public/categories (with product counts) */

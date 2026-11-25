@@ -40,11 +40,19 @@ Screenshots: [`docs/screenshots/phase2/`](docs/screenshots/phase2/)
 - **Price List**: all products by category with MRP and indicative price, instant search, category jump links, price disclaimer and a **print-friendly layout**
 - **My Estimate List**: a personal planning list saved only in the visitor's browser, with quantities and an indicative total; printable; clearly **not an order or booking**
 - **About Us**, **Contact Us** (placeholders for unconfirmed details, approximate area map), **Safety Guidelines** (adult supervision, safe lighting, emergency first aid and helplines) and draft **Legal** pages (disclaimer, privacy, terms)
-- Login / Signup are planned for Phase 4 together with the secure backend
+- Login / Signup were added in Phase 4 together with the secure backend
 
 Screenshots: [`docs/screenshots/phase3/`](docs/screenshots/phase3/)
 
 **Testing:** Phase 3 final audit – 72/72 desktop and 11/11 mobile automated browser checks passed (including Phase 1–2 regression, 82 internal links, 20 routes without horizontal overflow, print layout); lint and production build pass; no online ordering, checkout, payment, booking or reservation code. See [Phase 3 notes](docs/PHASE_3_NOTES.md).
+
+### Phase 4 – Secure backend, accounts and API integration
+- **Spring Boot 4.1 + MySQL backend** with Flyway migrations (10 tables, database-level checks), clearly labelled demo catalogue seeding, and a read-only public API for products, categories, brands, price list and business information
+- **Customer accounts**: sign up, log in with email or mobile, My Account (details, password), log out. Login sessions use an **HttpOnly, Secure, SameSite=Strict cookie** (never stored in JavaScript), CSRF protection, BCrypt passwords, 15-minute lock after 5 failed logins, per-IP limits
+- **Roles** OWNER / MANAGER / CASHIER / CUSTOMER: public sign-up only creates customers; the first OWNER is created once from environment settings; staff accounts only by the OWNER (admin app in Phase 5)
+- **Website connected to the API** (Vite proxy in development); the demo-data notice follows the backend; Estimate List still stays in the browser only
+
+**Testing:** 132/132 backend tests (49 unit/web + 83 against a MySQL test database); browser regression 899/899 desktop checks and phone checks at 375 px and 320 px; secrets and no-online-selling scans clean. See [Phase 4 notes](docs/PHASE_4_NOTES.md) and the [implementation reference](docs/PHASE_4_IMPLEMENTATION.md).
 
 > **Before going live:** legal pages are drafts that need review by the owner and a legal adviser, and the safety/first-aid content and emergency numbers should be checked against official sources (listed in the Phase 3 notes).
 
@@ -52,10 +60,10 @@ Screenshots: [`docs/screenshots/phase3/`](docs/screenshots/phase3/)
 
 | Folder | Contents | Status |
 |---|---|---|
-| `docs/` | Phase plans, notes and screenshots | Phases 0–3 |
-| `frontend/` | Public website | Phases 1–3 done |
+| `docs/` | Phase plans, notes and screenshots | Phases 0–4 |
+| `frontend/` | Public website | Phases 1–4 done (connected to the backend) |
 | `admin/` | Admin dashboard | Phase 5 |
-| `backend/` | REST API (Spring Boot + MySQL) | Phase 4 |
+| `backend/` | REST API (Spring Boot 4.1 + MySQL) | Phase 4 done; see [backend/README.md](backend/README.md) |
 
 ## Run the website
 
@@ -67,7 +75,7 @@ npm run dev
 
 Open http://localhost:5173. Other scripts: `npm run lint`, `npm run build`, `npm run preview`.
 
-The site currently runs on local demo data (`VITE_USE_MOCKS=true`, see `frontend/.env.example`). From Phase 4 it will call the Spring Boot API.
+The site reads everything from the Spring Boot API: start the backend first (`backend/scripts/run-dev.ps1`, port 8081); Vite forwards `/api` to it. To run without a backend on the Phase 1–3 sample data, set `VITE_USE_MOCKS=true` in `frontend/.env` (see `frontend/.env.example`). Customer Login / Signup / My Account work only with the backend.
 
 ## Documentation
 
@@ -75,3 +83,4 @@ The site currently runs on local demo data (`VITE_USE_MOCKS=true`, see `frontend
 - [Phase 1 – Notes](docs/PHASE_1_NOTES.md)
 - [Phase 2 – Notes](docs/PHASE_2_NOTES.md)
 - [Phase 3 – Notes](docs/PHASE_3_NOTES.md)
+- [Phase 4 – Plan](docs/PHASE_4_PLAN.md), [Notes](docs/PHASE_4_NOTES.md), [Implementation reference](docs/PHASE_4_IMPLEMENTATION.md)

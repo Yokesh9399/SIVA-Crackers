@@ -16,7 +16,7 @@ import { useSettings } from '../../hooks/useSettings.js';
 import { productService } from '../../services/productService.js';
 import { brandService, categoryService } from '../../services/catalogService.js';
 import { resultRange } from '../../utils/pagination.js';
-import { IS_DEMO_DATA } from '../../config/env.js';
+import { useDemoMode } from '../../hooks/useDemoMode.js';
 
 /**
  * Complete catalogue: search, filters (sidebar on desktop, bottom sheet on mobile),
@@ -26,6 +26,7 @@ import { IS_DEMO_DATA } from '../../config/env.js';
  */
 export default function CatalogueView({ fixedCategory, fixedBrand }) {
   const { settings } = useSettings();
+  const isDemo = useDemoMode();
   const { filters, apiParams, update, toggleIn, clearAll, activeCount } = useCatalogueFilters({
     category: fixedCategory,
     brand: fixedBrand,
@@ -198,7 +199,7 @@ export default function CatalogueView({ fixedCategory, fixedBrand }) {
               {settings?.priceDisclaimer ?? 'Prices shown are indicative only and may change without notice.'}
             </p>
             <p>This catalogue is for information only. Products are not sold, booked or delivered online. Please visit our shop to purchase.</p>
-            {IS_DEMO_DATA && <p className="font-medium text-violet-700">Items marked DEMO are sample data for testing.</p>}
+            {isDemo && <p className="font-medium text-violet-700">Items marked DEMO are sample data for testing.</p>}
           </div>
         </div>
       </div>

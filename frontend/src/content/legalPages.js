@@ -65,7 +65,9 @@ export const LEGAL_PAGES = {
       {
         heading: 'Customer accounts',
         body: [
-          'Customer accounts are not yet available. When they are introduced, this policy will be updated to explain what account information is collected, how it is protected and how you can delete it.',
+          'If you create a customer account, we store your name, email address, optional mobile number, and the date your account was created and last used. Your password is never stored as written: only a one-way encrypted form (BCrypt) is kept, so no one at the shop can see it.',
+          'When you log in, the website sets a secure login cookie that your browser sends back to our server. JavaScript on the page cannot read it, it is used only to keep you logged in, and it expires after 60 minutes or when you log out. A second, separate cookie protects the forms on this website against misuse.',
+          'Account information is used only to provide your account. No orders, bookings or payments are taken online. You can update your details from My Account; to have your account deleted, please contact the shop using the details on the Contact Us page.',
         ],
       },
       {

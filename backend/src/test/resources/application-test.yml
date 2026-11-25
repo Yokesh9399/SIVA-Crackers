@@ -1,0 +1,16 @@
+# Test profile for web-layer tests (no database).
+# The JWT secret below is a FAKE value used only by automated tests – never use it anywhere else.
+app:
+  jwt:
+    secret: test-only-fake-secret-not-for-production-0123456789
+    expiry-minutes: 60
+  cookie:
+    name: SIVA_SESSION
+    secure: true
+    same-site: Strict
+  cors:
+    allowed-origins: http://allowed.test
+  seed-demo: false
+  bootstrap:
+    owner-email: ""
+    owner-password: ""

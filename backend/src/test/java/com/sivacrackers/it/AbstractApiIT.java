@@ -1,0 +1,70 @@
+package com.sivacrackers.it;
+
+import com.sivacrackers.demo.DemoDataSeeder;
+import javax.sql.DataSource;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+
+/**
+ * Full application (controllers, services, security, JPA) against the MySQL TEST database,
+ * loaded with the demo catalogue. Requests go through MockMvc exactly like browser requests.
+ *
+ * <p>Data is committed (not rolled back) so it is removed again after the class, leaving the
+ * test database clean for the repository tests.
+ */
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("it")
+@Import(CleanTestDatabaseConfig.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public abstract class AbstractApiIT {
+
+    @DynamicPropertySource
+    static void testDatabase(DynamicPropertyRegistry registry) {
+        TestDatabase.register(registry);
+    }
+
+    @Autowired
+    protected MockMvc mvc;
+
+    @Autowired
+    protected DataSource dataSource;
+
+    @Autowired
+    private DemoDataSeeder seeder;
+
+    protected JdbcTemplate jdbc;
+
+    @BeforeAll
+    void loadDemoCatalogue() {
+        jdbc = new JdbcTemplate(dataSource);
+        removeCatalogue();
+        seeder.seed();
+    }
+
+    @AfterAll
+    void removeCatalogue() {
+        requireTestDatabase();
+        jdbc.update("DELETE FROM products");
+        jdbc.update("DELETE FROM brands");
+        jdbc.update("DELETE FROM categories");
+        jdbc.update("DELETE FROM users");
+    }
+
+    private void requireTestDatabase() {
+        String db = jdbc.queryForObject("SELECT DATABASE()", String.class);
+        if (db == null || !db.endsWith("_test")) {
+            throw new IllegalStateException("Refusing to delete data outside a *_test database");
+        }
+    }
+}

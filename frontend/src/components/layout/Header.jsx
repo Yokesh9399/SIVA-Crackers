@@ -5,6 +5,7 @@ import Logo from './Logo.jsx';
 import MobileMenu from './MobileMenu.jsx';
 import { NAV_LINKS } from '../../utils/constants.js';
 import { useEstimate } from '../../hooks/useEstimate.js';
+import { useAuth } from '../../hooks/useAuth.js';
 
 /** Sticky site header: logo, search, account links, desktop nav and the mobile menu trigger. */
 export default function Header() {
@@ -13,6 +14,8 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { count: estimateCount } = useEstimate();
+  const { user } = useAuth();
+  const firstName = user?.fullName?.trim().split(/\s+/)[0];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -74,11 +77,19 @@ export default function Header() {
               </span>
             )}
           </NavLink>
-          <NavLink to="/login" className="btn-gold px-3 py-2 sm:px-5">
-            <UserRound className="size-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Login / Signup</span>
-            <span className="sm:hidden">Login</span>
-          </NavLink>
+          {user ? (
+            <NavLink to="/account" className="btn-gold max-w-44 px-3 py-2 sm:px-5" aria-label="My Account">
+              <UserRound className="size-4 shrink-0" aria-hidden="true" />
+              <span className="hidden truncate sm:inline">Hi, {firstName}</span>
+              <span className="sm:hidden">Account</span>
+            </NavLink>
+          ) : (
+            <NavLink to="/login" className="btn-gold px-3 py-2 sm:px-5">
+              <UserRound className="size-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Login / Signup</span>
+              <span className="sm:hidden">Login</span>
+            </NavLink>
+          )}
         </div>
       </div>
 

@@ -1,0 +1,14 @@
+# Local development profile: SPRING_PROFILES_ACTIVE=dev
+# Still no secrets here – they come from environment variables.
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.sivacrackers: DEBUG
+    org.hibernate.SQL: DEBUG          # SQL statements only; bound values stay OFF (may contain personal data)

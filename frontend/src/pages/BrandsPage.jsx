@@ -27,7 +27,7 @@ export default function BrandsPage() {
       <PageHeader title="Brands" subtitle="Explore products by brand." crumbs={[{ label: 'Brands' }]} />
       <section className="container-page py-10" aria-label="All brands">
         {brands.error && <ErrorState onRetry={brands.retry} />}
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {brands.loading &&
             !brands.data &&
             Array.from({ length: 8 }, (_, i) => (
@@ -45,8 +45,8 @@ export default function BrandsPage() {
                   {initials(brand.name)}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center gap-2">
-                    <span className="truncate font-display font-semibold text-navy-900">{brand.name}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="min-w-0 truncate font-display font-semibold text-navy-900">{brand.name}</span>
                     <DemoTag show={brand.isDemo} />
                   </span>
                   <span className="mt-0.5 block text-sm text-slate-500">{brand.productCount} products</span>

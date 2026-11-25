@@ -11,7 +11,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { useSettings } from '../hooks/useSettings.js';
 import { productService } from '../services/productService.js';
 import { discountPercent, formatCurrency } from '../utils/format.js';
-import { IS_DEMO_DATA } from '../config/env.js';
+import { useDemoMode } from '../hooks/useDemoMode.js';
 
 /** Every word must match the product, brand or category name (same rule as the catalogue search). */
 function matches(product, words) {
@@ -24,6 +24,7 @@ function matches(product, words) {
 export default function PriceListPage() {
   useDocumentTitle('Price List');
   const { settings } = useSettings();
+  const isDemo = useDemoMode();
   const list = useAsync(() => productService.getPriceList(), []);
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
@@ -54,7 +55,7 @@ export default function PriceListPage() {
           <Info className="mt-0.5 size-5 shrink-0 text-orange-600" aria-hidden="true" />
           <span>
             <strong>Price disclaimer:</strong> {disclaimer} This list is for information only – firecrackers are not sold, booked or delivered
-            online. {IS_DEMO_DATA && <strong className="text-violet-700">All items and prices shown are demonstration data.</strong>}
+            online. {isDemo && <strong className="text-violet-700">All items and prices shown are demonstration data.</strong>}
           </span>
         </p>
 

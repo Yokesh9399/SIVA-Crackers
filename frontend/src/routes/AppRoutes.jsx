@@ -3,9 +3,9 @@ import { Route, Routes } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout.jsx';
 import HomePage from '../pages/HomePage.jsx';
 import PageLoader from '../components/ui/PageLoader.jsx';
+import ProtectedRoute from '../components/auth/ProtectedRoute.jsx';
 
 // Pages other than Home are lazy-loaded so the first page load stays small.
-const ComingSoonPage = lazy(() => import('../pages/ComingSoonPage.jsx'));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage.jsx'));
 const ProductsPage = lazy(() => import('../pages/ProductsPage.jsx'));
 const ProductDetailPage = lazy(() => import('../pages/ProductDetailPage.jsx'));
@@ -19,13 +19,9 @@ const AboutPage = lazy(() => import('../pages/AboutPage.jsx'));
 const ContactPage = lazy(() => import('../pages/ContactPage.jsx'));
 const SafetyPage = lazy(() => import('../pages/SafetyPage.jsx'));
 const LegalPage = lazy(() => import('../pages/LegalPage.jsx'));
-
-// Customer accounts need the real JWT backend, so they are built with it in Phase 4.
-// These routes show a friendly placeholder so the Login / Signup links already work.
-const UPCOMING = [
-  { path: 'login', title: 'Login', phase: 4 },
-  { path: 'register', title: 'Create Account', phase: 4 },
-];
+const LoginPage = lazy(() => import('../pages/LoginPage.jsx'));
+const RegisterPage = lazy(() => import('../pages/RegisterPage.jsx'));
+const AccountPage = lazy(() => import('../pages/AccountPage.jsx'));
 
 export default function AppRoutes() {
   return (
@@ -45,9 +41,12 @@ export default function AppRoutes() {
           <Route path="contact" element={<ContactPage />} />
           <Route path="safety" element={<SafetyPage />} />
           <Route path="legal/:slug" element={<LegalPage />} />
-          {UPCOMING.map(({ path, title, phase }) => (
-            <Route key={path} path={path} element={<ComingSoonPage title={title} phase={phase} />} />
-          ))}
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+          {/* Customer-only pages: logged-out visitors are sent to /login and brought back */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="account" element={<AccountPage />} />
+          </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

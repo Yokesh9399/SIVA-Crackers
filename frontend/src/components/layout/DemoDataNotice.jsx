@@ -1,9 +1,10 @@
 import { FlaskConical } from 'lucide-react';
-import { IS_DEMO_DATA } from '../../config/env.js';
+import { useDemoMode } from '../../hooks/useDemoMode.js';
 
 /** Site-wide notice shown while the website runs on demonstration data. */
 export default function DemoDataNotice() {
-  if (!IS_DEMO_DATA) return null;
+  const isDemo = useDemoMode();
+  if (!isDemo) return null;
   return (
     <div role="note" className="border-b border-violet-200 bg-violet-50 text-violet-900">
       <div className="container-page flex items-start gap-2 py-2 text-xs sm:items-center sm:text-sm">

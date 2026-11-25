@@ -1,6 +1,6 @@
 # Phase 3 – Product details and business pages
 
-**Status:** Complete and audited. Phase 4 not started.
+**Status:** Complete and audited.
 
 ## What was built
 

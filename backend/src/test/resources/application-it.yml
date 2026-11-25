@@ -1,0 +1,23 @@
+# MySQL integration-test profile (Phase 4.2+). The datasource comes from TEST_DB_* via TestDatabase.
+# Flyway "clean" is allowed ONLY here, and only after the *_test safety checks pass.
+spring:
+  flyway:
+    clean-disabled: false
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+app:
+  jwt:
+    secret: test-only-fake-secret-not-for-production-0123456789
+    expiry-minutes: 60
+  cookie:
+    name: SIVA_SESSION
+    secure: true
+    same-site: Strict
+  cors:
+    allowed-origins: ""
+  seed-demo: false
+  bootstrap:
+    owner-email: ""
+    owner-password: ""

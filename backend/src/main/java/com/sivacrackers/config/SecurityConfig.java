@@ -93,6 +93,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public, read-only website data and the health check
                         .requestMatchers(HttpMethod.GET, "/api/health", "/api/public/**").permitAll()
+                        // Uploaded product / brand / category images (read-only, see ImageController)
+                        .requestMatchers(HttpMethod.GET, "/uploads/*/*").permitAll()
                         // "Who am I" needs a session; login / register / logout / CSRF bootstrap are open
                         // (CSRF is still enforced on every POST)
                         .requestMatchers("/api/auth/me").authenticated()

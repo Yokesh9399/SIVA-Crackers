@@ -21,7 +21,10 @@ function buildSlides(product) {
 }
 
 function Slide({ slide, product, className }) {
-  if (slide.src) return <img src={slide.src} alt={slide.alt} className={`object-cover ${className}`} />;
+  const [failed, setFailed] = useState(false);
+  if (slide.src && !failed) {
+    return <img src={slide.src} alt={slide.alt} onError={() => setFailed(true)} className={`object-cover ${className}`} />;
+  }
   return <ProductArt categorySlug={product.category.slug} variant={slide.variant} label={slide.alt} className={className} />;
 }
 

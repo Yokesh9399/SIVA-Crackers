@@ -14,6 +14,7 @@ public class InvalidRequestException extends ApiException {
         this.fieldErrors = List.of(new FieldErrorDto(field, message));
     }
 
+    @Override
     public List<FieldErrorDto> getFieldErrors() {
         return fieldErrors;
     }

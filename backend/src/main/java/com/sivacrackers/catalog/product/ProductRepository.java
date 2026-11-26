@@ -26,6 +26,48 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     boolean existsBySku(String sku);
 
+    // ---------- Admin (Phase 5) ----------
+
+    /** One product with category and brand, by id (admin view / edit). */
+    @EntityGraph(attributePaths = {"category", "brand"})
+    Optional<Product> findWithParentsById(Long id);
+
+    boolean existsBySlug(String slug);
+
+    boolean existsBySlugAndIdNot(String slug, Long id);
+
+    boolean existsBySkuAndIdNot(String sku, Long id);
+
+    long countByCategoryId(Long categoryId);
+
+    long countByBrandId(Long brandId);
+
+    long countByActiveTrue();
+
+    long countByActiveFalse();
+
+    long countByActiveTrueAndVisibleOnWebsiteTrue();
+
+    long countByActiveTrueAndVisibleOnWebsiteFalse();
+
+    long countByActiveTrueAndFeaturedTrue();
+
+    long countByDemoTrue();
+
+    @Query("select count(p) from Product p where p.active = true and p.stockQuantity = 0")
+    long countActiveOutOfStock();
+
+    @Query("select count(p) from Product p where p.active = true and p.stockQuantity > 0 and p.stockQuantity <= p.reorderLevel")
+    long countActiveLowStock();
+
+    /** All products (any status) per category id. */
+    @Query("select p.category.id as parentId, count(p) as productCount from Product p group by p.category.id")
+    List<CountByParent> countAllByCategory();
+
+    /** All products (any status) per brand id. */
+    @Query("select p.brand.id as parentId, count(p) as productCount from Product p group by p.brand.id")
+    List<CountByParent> countAllByBrand();
+
     boolean existsByDemoTrue();
 
     boolean existsByDemoFalse();

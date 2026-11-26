@@ -83,6 +83,19 @@
   .btn-outline {
     @apply btn border border-white/40 text-white hover:border-gold-400 hover:text-gold-400;
   }
+  /* Admin dashboard (Phase 5) */
+  .admin-btn-secondary {
+    @apply btn border border-slate-300 bg-white text-navy-900 hover:border-navy-600 hover:bg-slate-50;
+  }
+  .admin-btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700 active:scale-[0.98];
+  }
+  .admin-input {
+    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-navy-900 placeholder:text-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 focus:outline-none;
+  }
+  .admin-card {
+    @apply rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/70;
+  }
   .btn-whatsapp {
     @apply btn bg-emerald-600 text-white hover:bg-emerald-700 active:scale-[0.98];
   }

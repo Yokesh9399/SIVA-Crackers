@@ -8,6 +8,13 @@ spring:
   application:
     name: siva-crackers-backend
 
+  # ---------- Image uploads (admin only, Phase 5) ----------
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 3MB
+      file-size-threshold: 0
+
   # ---------- Database (MySQL 8) ----------
   datasource:
     url: ${DB_URL}
@@ -72,6 +79,8 @@ app:
   bootstrap:
     owner-email: ${BOOTSTRAP_OWNER_EMAIL:}
     owner-password: ${BOOTSTRAP_OWNER_PASSWORD:}
+  media:
+    upload-dir: ${APP_UPLOAD_DIR:uploads}           # uploaded images (relative to the backend folder); git-ignored
 
 # ---------- API documentation: off unless the dev profile is active ----------
 springdoc:

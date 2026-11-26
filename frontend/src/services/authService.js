@@ -19,6 +19,11 @@ export const authService = {
     return apiClient.post('/auth/login', credentials).then((r) => r.data);
   },
 
+  /** Staff login (OWNER / MANAGER / CASHIER) for the admin dashboard. */
+  staffLogin(credentials) {
+    return apiClient.post('/auth/staff/login', credentials).then((r) => r.data);
+  },
+
   /** { fullName, email, phone?, password } – always creates a customer account. */
   register(details) {
     return apiClient.post('/auth/register', details).then((r) => r.data);

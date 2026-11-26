@@ -17,4 +17,21 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     boolean existsBySlug(String slug);
 
     boolean existsByDemoFalse();
+
+    // ---------- Admin (Phase 5) ----------
+
+    /** Every category (active or not) in display order, with safety notes. */
+    @EntityGraph(attributePaths = "safetyNotes")
+    List<Category> findAllByOrderByDisplayOrderAscIdAsc();
+
+    @EntityGraph(attributePaths = "safetyNotes")
+    Optional<Category> findWithNotesById(Long id);
+
+    boolean existsByNameIgnoreCase(String name);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
+
+    boolean existsBySlugAndIdNot(String slug, Long id);
+
+    long countByActiveTrue();
 }

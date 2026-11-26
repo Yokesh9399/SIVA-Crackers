@@ -114,7 +114,7 @@ public final class ProductSpecifications {
     }
 
     /** Escapes LIKE wildcards so a search for "50%" or "a_b" matches literally. */
-    static String escapeLike(String value) {
+    public static String escapeLike(String value) {
         return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }

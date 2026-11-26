@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (credentials) => setUser(await authService.login(credentials)), [setUser]);
+  const staffLogin = useCallback(async (credentials) => setUser(await authService.staffLogin(credentials)), [setUser]);
   const register = useCallback(async (details) => setUser(await authService.register(details)), [setUser]);
   const logout = useCallback(async () => {
     try {
@@ -56,8 +57,8 @@ export function AuthProvider({ children }) {
   }, [setUser]);
 
   const value = useMemo(
-    () => ({ user, status, sessionExpired, login, register, logout, setUser }),
-    [user, status, sessionExpired, login, register, logout, setUser],
+    () => ({ user, status, sessionExpired, login, staffLogin, register, logout, setUser }),
+    [user, status, sessionExpired, login, staffLogin, register, logout, setUser],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

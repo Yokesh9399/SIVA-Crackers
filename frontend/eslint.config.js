@@ -25,6 +25,11 @@ export default [
     },
   },
   {
+    // Tests and test helpers export helpers next to components
+    files: ['src/test/**', 'src/**/*.test.{js,jsx}'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
     files: ['vite.config.js', 'eslint.config.js'],
     languageOptions: { globals: globals.node },
   },

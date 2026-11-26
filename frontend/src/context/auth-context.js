@@ -8,6 +8,7 @@ export const AuthContext = createContext({
   status: 'loading',
   sessionExpired: false,
   login: async () => {},
+  staffLogin: async () => {},
   register: async () => {},
   logout: async () => {},
   setUser: () => {},

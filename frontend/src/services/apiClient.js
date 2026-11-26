@@ -50,7 +50,7 @@ apiClient.interceptors.request.use(async (config) => {
 export const SESSION_EXPIRED_EVENT = 'siva:session-expired';
 
 // Requests where a 401 is an expected answer, not an expired session.
-const AUTH_PROBES = ['/auth/me', '/auth/login', '/auth/register', '/auth/logout'];
+const AUTH_PROBES = ['/auth/me', '/auth/login', '/auth/staff/login', '/auth/register', '/auth/logout'];
 
 // Turn API errors into one readable message for the UI.
 apiClient.interceptors.response.use(

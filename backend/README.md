@@ -4,7 +4,7 @@ REST API for the SIVA Crackers information catalogue.
 
 > The website is an information catalogue only. This backend has **no** checkout, online payment, online ordering, booking or reservation features.
 
-**Status:** Phase 4 complete – public read-only catalogue API plus customer/staff login (HttpOnly cookie sessions, CSRF, lockout, roles, OWNER bootstrap), used by the website. Reference: [`../docs/PHASE_4_IMPLEMENTATION.md`](../docs/PHASE_4_IMPLEMENTATION.md) (§3 public API, §4 authentication, §5 website integration).
+**Status:** Phase 5 complete – public read-only catalogue API, customer/staff login (HttpOnly cookie sessions, CSRF, lockout, roles, OWNER bootstrap) and the OWNER-only admin API (dashboard, products, categories, brands, homepage slides, image uploads). References: [`../docs/PHASE_4_IMPLEMENTATION.md`](../docs/PHASE_4_IMPLEMENTATION.md), [`../docs/PHASE_5_IMPLEMENTATION.md`](../docs/PHASE_5_IMPLEMENTATION.md).
 
 ## Tech stack
 
@@ -92,6 +92,7 @@ Check: <http://localhost:8080/api/health> → `{"status":"UP"}`. In the dev prof
 | `CORS_ALLOWED_ORIGINS` | no | *(empty)* | exact origins for a separately hosted frontend; no wildcards |
 | `APP_SEED_DEMO` | no | `false` | load clearly labelled demo catalogue (from 4.3) |
 | `BOOTSTRAP_OWNER_EMAIL` / `BOOTSTRAP_OWNER_PASSWORD` | no | – | one-time first OWNER account (from 4.5) |
+| `APP_UPLOAD_DIR` | no | `uploads` | folder for images uploaded in the admin (from Phase 5); git-ignored; use a persistent, backed-up folder on a server |
 | `TEST_DB_URL` / `TEST_DB_USERNAME` / `TEST_DB_PASSWORD` | tests | – | MySQL integration tests |
 
 The application **refuses to start** with a clear list of problems if a required variable is missing, if `JWT_SECRET` is shorter than 32 bytes, or if `DB_URL` is not a MySQL JDBC URL. Messages name the variable but never print its value.
@@ -116,6 +117,12 @@ BOOTSTRAP_OWNER_PASSWORD=
 ```
 
 Start the backend once. The OWNER is created only if no OWNER exists yet (password: 8-72 characters, at least one letter and one digit). Log in through the staff login, then **delete both lines** from `.env`. Later starts ignore them and never change an existing account. MANAGER and CASHIER accounts are created by the OWNER (`POST /api/admin/staff`); public sign-up only ever creates CUSTOMER accounts.
+
+## Admin dashboard (Phase 5)
+
+The OWNER manages the catalogue at **http://localhost:5173/admin** (website and admin share one origin; Vite forwards `/api` and `/uploads` to this backend). Log in with the OWNER account created above. MANAGER, CASHIER and CUSTOMER accounts are refused – both in the browser and by the API (`@PreAuthorize("hasRole('OWNER')")` on every admin endpoint). Endpoints: [`../docs/PHASE_5_IMPLEMENTATION.md`](../docs/PHASE_5_IMPLEMENTATION.md).
+
+Uploaded images are stored in `APP_UPLOAD_DIR` (default `backend/uploads/`) under random names, with location/camera metadata removed, and served read-only at `/uploads/{products|brands|categories}/…`. Back this folder up together with the database.
 
 ## Demo data
 

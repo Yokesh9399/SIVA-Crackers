@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import ProductArt from '../product/ProductArt.jsx';
+import CategoryPicture from '../ui/CategoryPicture.jsx';
 import SectionHeading from '../ui/SectionHeading.jsx';
 import Skeleton from '../ui/Skeleton.jsx';
 import ErrorState from '../ui/ErrorState.jsx';
@@ -44,11 +44,7 @@ export default function CategoryGrid({ categories, loading, error, onRetry, show
               className="group block h-full rounded-2xl bg-white p-2.5 text-center shadow-sm ring-1 ring-slate-200/70 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-gold-400 sm:p-3"
             >
               <div className="overflow-hidden rounded-xl">
-                <ProductArt
-                  categorySlug={category.slug}
-                  label={category.name}
-                  className="aspect-square w-full transition duration-500 group-hover:scale-110"
-                />
+                <CategoryPicture category={category} className="aspect-square w-full transition duration-500 group-hover:scale-110" />
               </div>
               <h3 className="mt-2.5 text-xs leading-tight font-semibold text-navy-900 sm:text-sm">{category.name}</h3>
               <p className="mt-0.5 text-[0.7rem] text-slate-500">{category.productCount} products</p>

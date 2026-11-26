@@ -2,21 +2,8 @@ import { Link } from 'react-router-dom';
 import SectionHeading from '../ui/SectionHeading.jsx';
 import Skeleton from '../ui/Skeleton.jsx';
 import DemoTag from '../ui/DemoTag.jsx';
+import BrandLogo from '../ui/BrandLogo.jsx';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion.js';
-
-/** Initials badge used until brand logos are uploaded. */
-function BrandMark({ name }) {
-  const initials = name
-    .split(' ')
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('');
-  return (
-    <span className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-gold-300 to-orange-500 font-display text-base font-bold text-navy-950">
-      {initials}
-    </span>
-  );
-}
 
 function BrandCard({ brand, hiddenCopy = false }) {
   return (
@@ -25,7 +12,7 @@ function BrandCard({ brand, hiddenCopy = false }) {
       tabIndex={hiddenCopy ? -1 : undefined}
       className="flex w-60 items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-gold-400/60 hover:bg-white/10"
     >
-      <BrandMark name={brand.name} />
+      <BrandLogo name={brand.name} logoUrl={brand.logoUrl} />
       <span className="min-w-0">
         <span className="block truncate font-display text-sm font-semibold text-white">{brand.name}</span>
         <span className="mt-0.5 flex items-center gap-2 text-xs text-white/60">

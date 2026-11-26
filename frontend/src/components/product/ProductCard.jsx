@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye } from 'lucide-react';
 import ProductArt from './ProductArt.jsx';
@@ -14,7 +15,8 @@ import { discountPercent } from '../../utils/format.js';
 export default function ProductCard({ product }) {
   const { name, slug, brand, category, packSize, price, mrp, stockStatus, images } = product;
   const discount = discountPercent(mrp, price);
-  const primaryImage = images?.[0];
+  const [imageFailed, setImageFailed] = useState(false);
+  const primaryImage = imageFailed ? null : images?.[0];
   const detailPath = `/products/${slug}`;
 
   return (
@@ -26,6 +28,7 @@ export default function ProductCard({ product }) {
             src={primaryImage.url}
             alt={primaryImage.alt ?? name}
             loading="lazy"
+            onError={() => setImageFailed(true)}
             className="size-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (

@@ -13,4 +13,16 @@ public interface BrandRepository extends JpaRepository<Brand, Long> {
     boolean existsBySlug(String slug);
 
     boolean existsByDemoFalse();
+
+    // ---------- Admin (Phase 5) ----------
+
+    List<Brand> findAllByOrderByDisplayOrderAscIdAsc();
+
+    boolean existsByNameIgnoreCase(String name);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, Long id);
+
+    boolean existsBySlugAndIdNot(String slug, Long id);
+
+    long countByActiveTrue();
 }

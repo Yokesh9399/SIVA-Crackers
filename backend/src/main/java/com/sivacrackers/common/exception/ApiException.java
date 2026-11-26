@@ -18,4 +18,9 @@ public abstract class ApiException extends RuntimeException {
     public HttpStatus getStatus() {
         return status;
     }
+
+    /** Errors for named request fields, shown next to the form fields (empty for most errors). */
+    public java.util.List<com.sivacrackers.common.dto.FieldErrorDto> getFieldErrors() {
+        return java.util.List.of();
+    }
 }

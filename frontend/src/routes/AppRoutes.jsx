@@ -22,11 +22,14 @@ const LegalPage = lazy(() => import('../pages/LegalPage.jsx'));
 const LoginPage = lazy(() => import('../pages/LoginPage.jsx'));
 const RegisterPage = lazy(() => import('../pages/RegisterPage.jsx'));
 const AccountPage = lazy(() => import('../pages/AccountPage.jsx'));
+// Owner's admin dashboard (Phase 5): its own layout, loaded only when /admin is opened.
+const AdminApp = lazy(() => import('../admin/AdminApp.jsx'));
 
 export default function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
+        <Route path="admin/*" element={<AdminApp />} />
         <Route element={<MainLayout />}>
           <Route index element={<HomePage />} />
           <Route path="products" element={<ProductsPage />} />

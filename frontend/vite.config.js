@@ -10,6 +10,15 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    // Unit / component tests (npm test): browser-like jsdom, no backend needed – API calls are mocked.
+    test: {
+      environment: 'jsdom',
+      setupFiles: ['./src/test/setup.js'],
+      css: false,
+      include: ['src/**/*.test.{js,jsx}'],
+      // Form tests type character by character; allow for a busy machine (e.g. right after a Maven build).
+      testTimeout: 15000,
+    },
     server: {
       port: 5173,
       strictPort: true,
@@ -17,6 +26,8 @@ export default defineConfig(({ mode }) => {
       // Same origin => cookies and CSRF work without CORS.
       proxy: {
         '/api': { target: apiTarget, changeOrigin: false },
+        // Uploaded product / brand / category images (served by the backend)
+        '/uploads': { target: apiTarget, changeOrigin: false },
       },
     },
   };

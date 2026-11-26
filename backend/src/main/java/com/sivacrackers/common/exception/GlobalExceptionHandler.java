@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
     ResponseEntity<ApiError> handleApi(ApiException ex, HttpServletRequest request) {
-        List<FieldErrorDto> fieldErrors = ex instanceof InvalidRequestException invalid ? invalid.getFieldErrors() : List.of();
+        List<FieldErrorDto> fieldErrors = ex.getFieldErrors();
         ResponseEntity<ApiError> response = respond(ex.getStatus(), ex.getMessage(), request, fieldErrors);
         if (ex instanceof TooManyRequestsException tooMany) {
             return ResponseEntity.status(response.getStatusCode())
@@ -107,6 +107,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     ResponseEntity<ApiError> handleMediaType(HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
         return respond(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported content type", request, List.of());
+    }
+
+    /** Uploads over the size limit (spring.servlet.multipart.max-file-size). */
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    ResponseEntity<ApiError> handleTooLarge(Exception ex, HttpServletRequest request) {
+        return respond(HttpStatus.CONTENT_TOO_LARGE, "The file is too large. Images can be at most 2 MB.", request, List.of());
+    }
+
+    /** Broken or missing multipart upload. */
+    @ExceptionHandler({org.springframework.web.multipart.MultipartException.class,
+            org.springframework.web.multipart.support.MissingServletRequestPartException.class})
+    ResponseEntity<ApiError> handleMultipart(Exception ex, HttpServletRequest request) {
+        return respond(HttpStatus.BAD_REQUEST, "Please choose an image file to upload.", request, List.of());
     }
 
     /**

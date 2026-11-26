@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import BrandLogo from '../components/ui/BrandLogo.jsx';
 import { ArrowRight } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader.jsx';
 import Skeleton from '../components/ui/Skeleton.jsx';
@@ -8,14 +9,6 @@ import Reveal from '../components/ui/Reveal.jsx';
 import { useAsync } from '../hooks/useAsync.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { brandService } from '../services/catalogService.js';
-
-function initials(name) {
-  return name
-    .split(' ')
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('');
-}
 
 /** /brands – every brand once (no duplicates), linking to its products. */
 export default function BrandsPage() {
@@ -41,9 +34,7 @@ export default function BrandsPage() {
                 to={`/brands/${brand.slug}`}
                 className="group flex h-full items-center gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-lg hover:ring-gold-400"
               >
-                <span className="grid size-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-gold-300 to-orange-500 font-display text-lg font-bold text-navy-950">
-                  {initials(brand.name)}
-                </span>
+                <BrandLogo name={brand.name} logoUrl={brand.logoUrl} className="size-14 text-lg" />
                 <span className="min-w-0 flex-1">
                   <span className="flex min-w-0 items-center gap-2">
                     <span className="min-w-0 truncate font-display font-semibold text-navy-900">{brand.name}</span>

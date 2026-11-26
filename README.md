@@ -11,7 +11,7 @@ Informational product catalogue and (later) shop management system for **SIVA Cr
 | Part | Technology |
 |---|---|
 | Public website | React 19, Vite, Tailwind CSS 4, React Router, Lucide React, Axios |
-| Admin dashboard | React (Phase 5) |
+| Admin dashboard | React, inside the website at `/admin` (Phase 5) |
 | Backend | Java, Spring Boot, Spring Data JPA, Spring Security + JWT, Maven (Phase 4) |
 | Database | MySQL (Phase 4) |
 
@@ -54,16 +54,22 @@ Screenshots: [`docs/screenshots/phase3/`](docs/screenshots/phase3/)
 
 **Testing:** 132/132 backend tests (49 unit/web + 83 against a MySQL test database); browser regression 899/899 desktop checks and phone checks at 375 px and 320 px; secrets and no-online-selling scans clean. See [Phase 4 notes](docs/PHASE_4_NOTES.md) and the [implementation reference](docs/PHASE_4_IMPLEMENTATION.md).
 
+### Phase 5 – Admin dashboard
+- Owner-only admin at **`/admin`**: live dashboard figures (no sales or order figures), products (search, filters, sort, paging, add, edit, delete with confirmation, quick show/hide), categories and brands (product counts; deleting is blocked while products use them), homepage slides and text, business settings
+- **Image uploads** for product photos, brand logos and category pictures – checked on the server by content, location/camera metadata removed – shown on the public website automatically
+- Every admin action is authorised again by the server (OWNER role + CSRF); the admin is switched off in mock mode
+
+**Testing:** 155/155 backend tests (incl. 17 new admin API tests on MySQL), 34/34 new frontend component tests (Vitest), public-site regression 899/899 desktop and 250/250 at 360 px and 320 px. The logged-in admin was not clicked through in a browser – see [Phase 5 notes](docs/PHASE_5_NOTES.md).
+
 > **Before going live:** legal pages are drafts that need review by the owner and a legal adviser, and the safety/first-aid content and emergency numbers should be checked against official sources (listed in the Phase 3 notes).
 
 ## Project structure
 
 | Folder | Contents | Status |
 |---|---|---|
-| `docs/` | Phase plans, notes and screenshots | Phases 0–4 |
-| `frontend/` | Public website | Phases 1–4 done (connected to the backend) |
-| `admin/` | Admin dashboard | Phase 5 |
-| `backend/` | REST API (Spring Boot 4.1 + MySQL) | Phase 4 done; see [backend/README.md](backend/README.md) |
+| `docs/` | Phase plans, notes and screenshots | Phases 0–5 |
+| `frontend/` | Public website and the admin dashboard (`src/admin/`, served at `/admin`) | Phases 1–5 done |
+| `backend/` | REST API (Spring Boot 4.1 + MySQL) | Phases 4–5 done; see [backend/README.md](backend/README.md) |
 
 ## Run the website
 
@@ -73,7 +79,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. Other scripts: `npm run lint`, `npm run build`, `npm run preview`.
+Open http://localhost:5173 (admin: http://localhost:5173/admin). Other scripts: `npm test` (component tests), `npm run lint`, `npm run build`, `npm run preview`.
 
 The site reads everything from the Spring Boot API: start the backend first (`backend/scripts/run-dev.ps1`, port 8081); Vite forwards `/api` to it. To run without a backend on the Phase 1–3 sample data, set `VITE_USE_MOCKS=true` in `frontend/.env` (see `frontend/.env.example`). Customer Login / Signup / My Account work only with the backend.
 
@@ -84,3 +90,4 @@ The site reads everything from the Spring Boot API: start the backend first (`ba
 - [Phase 2 – Notes](docs/PHASE_2_NOTES.md)
 - [Phase 3 – Notes](docs/PHASE_3_NOTES.md)
 - [Phase 4 – Plan](docs/PHASE_4_PLAN.md), [Notes](docs/PHASE_4_NOTES.md), [Implementation reference](docs/PHASE_4_IMPLEMENTATION.md)
+- [Phase 5 – Notes](docs/PHASE_5_NOTES.md), [Implementation reference](docs/PHASE_5_IMPLEMENTATION.md)

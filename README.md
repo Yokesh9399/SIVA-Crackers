@@ -61,15 +61,23 @@ Screenshots: [`docs/screenshots/phase3/`](docs/screenshots/phase3/)
 
 **Testing:** 155/155 backend tests (incl. 17 new admin API tests on MySQL), 34/34 new frontend component tests (Vitest), public-site regression 899/899 desktop and 250/250 at 360 px and 320 px. The logged-in admin was not clicked through in a browser – see [Phase 5 notes](docs/PHASE_5_NOTES.md).
 
+### Phase 6 – Inventory and business management (internal)
+- **Stock**: current stock, record stock in / out / counted adjustments with reason, supplier and cost, full **stock history** (before → after, who, when), low-stock and out-of-stock alerts, per-product low-stock level; stock can never go negative and simultaneous changes are safe
+- **Suppliers** with purchase history, **expenses** (cancel with reason, never deleted, monthly summary), **shop customer contacts**, **reports** (daily / monthly / yearly summary, stock, low stock, suppliers, expenses) with **CSV export**
+- **Staff management** and an **activity log** (Phase 5 completion); roles follow the Phase 0 table: owner, manager, cashier
+- Not built (awaiting your decision): in-store billing, billing invoices, sales figures. Nothing is sold online
+
+**Testing:** 175/175 backend tests (117 on MySQL), 47/47 frontend component tests. See [Phase 6 notes](docs/PHASE_6_NOTES.md) and the [API reference](docs/API.md).
+
 > **Before going live:** legal pages are drafts that need review by the owner and a legal adviser, and the safety/first-aid content and emergency numbers should be checked against official sources (listed in the Phase 3 notes).
 
 ## Project structure
 
 | Folder | Contents | Status |
 |---|---|---|
-| `docs/` | Phase plans, notes and screenshots | Phases 0–5 |
-| `frontend/` | Public website and the admin dashboard (`src/admin/`, served at `/admin`) | Phases 1–5 done |
-| `backend/` | REST API (Spring Boot 4.1 + MySQL) | Phases 4–5 done; see [backend/README.md](backend/README.md) |
+| `docs/` | Phase plans and notes, [API reference](docs/API.md), [Postman collection](docs/postman/) | Phases 0–6 |
+| `frontend/` | Public website and the admin dashboard (`src/admin/`, served at `/admin`) | Phases 1–6 |
+| `backend/` | REST API (Spring Boot 4.1 + MySQL) | Phases 4–6; see [backend/README.md](backend/README.md) |
 
 ## Run the website
 
@@ -91,3 +99,5 @@ The site reads everything from the Spring Boot API: start the backend first (`ba
 - [Phase 3 – Notes](docs/PHASE_3_NOTES.md)
 - [Phase 4 – Plan](docs/PHASE_4_PLAN.md), [Notes](docs/PHASE_4_NOTES.md), [Implementation reference](docs/PHASE_4_IMPLEMENTATION.md)
 - [Phase 5 – Notes](docs/PHASE_5_NOTES.md), [Implementation reference](docs/PHASE_5_IMPLEMENTATION.md)
+- [Phase 6 – Notes](docs/PHASE_6_NOTES.md)
+- [API reference](docs/API.md) and [Postman collection](docs/postman/)

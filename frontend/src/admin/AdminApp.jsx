@@ -1,7 +1,10 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Navigate, Route, Routes } from 'react-router-dom';
 import AdminRoute from './AdminRoute.jsx';
 import AdminLayout from './AdminLayout.jsx';
+import RequireRole from './RequireRole.jsx';
+import { ROLES_FOR, homeFor } from './roles.js';
+import { useAuth } from '../hooks/useAuth.js';
 import { ToastProvider } from './context/ToastProvider.jsx';
 import AdminLoginPage from './pages/AdminLoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -14,6 +17,20 @@ const CategoriesPage = lazy(() => import('./pages/CategoriesPage.jsx'));
 const BrandsPage = lazy(() => import('./pages/BrandsPage.jsx'));
 const ContentPage = lazy(() => import('./pages/ContentPage.jsx'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'));
+const StaffPage = lazy(() => import('./pages/StaffPage.jsx'));
+const ActivityPage = lazy(() => import('./pages/ActivityPage.jsx'));
+const InventoryPage = lazy(() => import('./pages/InventoryPage.jsx'));
+const StockHistoryPage = lazy(() => import('./pages/StockHistoryPage.jsx'));
+const SuppliersPage = lazy(() => import('./pages/SuppliersPage.jsx'));
+const ExpensesPage = lazy(() => import('./pages/ExpensesPage.jsx'));
+const CustomersPage = lazy(() => import('./pages/CustomersPage.jsx'));
+const ReportsPage = lazy(() => import('./pages/ReportsPage.jsx'));
+
+/** /admin: the dashboard for owners and managers; cashiers start on the Stock page. */
+function AdminHome() {
+  const { user } = useAuth();
+  return homeFor(user?.role) === '/admin' ? <DashboardPage /> : <Navigate to={homeFor(user?.role)} replace />;
+}
 
 function AdminNotFound() {
   return (
@@ -45,15 +62,30 @@ export default function AdminApp() {
           <Route path="login" element={<AdminLoginPage />} />
           <Route element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
-              <Route index element={<DashboardPage />} />
-              <Route path="products" element={<ProductsPage />} />
-              <Route path="products/new" element={<ProductFormPage />} />
-              <Route path="products/:id" element={<ProductViewPage />} />
-              <Route path="products/:id/edit" element={<ProductFormPage />} />
-              <Route path="categories" element={<CategoriesPage />} />
-              <Route path="brands" element={<BrandsPage />} />
-              <Route path="content" element={<ContentPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route index element={<AdminHome />} />
+              {/* Everyone on the staff: view stock and look up customers */}
+              <Route path="inventory" element={<InventoryPage />} />
+              <Route path="stock-history" element={<StockHistoryPage />} />
+              <Route path="customers" element={<CustomersPage />} />
+              {/* Owner and manager: run the shop */}
+              <Route element={<RequireRole roles={ROLES_FOR.runShop} />}>
+                <Route path="products" element={<ProductsPage />} />
+                <Route path="products/new" element={<ProductFormPage />} />
+                <Route path="products/:id" element={<ProductViewPage />} />
+                <Route path="products/:id/edit" element={<ProductFormPage />} />
+                <Route path="categories" element={<CategoriesPage />} />
+                <Route path="brands" element={<BrandsPage />} />
+                <Route path="suppliers" element={<SuppliersPage />} />
+                <Route path="expenses" element={<ExpensesPage />} />
+                <Route path="reports" element={<ReportsPage />} />
+              </Route>
+              {/* Owner only */}
+              <Route element={<RequireRole roles={ROLES_FOR.owner} />}>
+                <Route path="staff" element={<StaffPage />} />
+                <Route path="activity" element={<ActivityPage />} />
+                <Route path="content" element={<ContentPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Route>
               <Route path="*" element={<AdminNotFound />} />
             </Route>
           </Route>

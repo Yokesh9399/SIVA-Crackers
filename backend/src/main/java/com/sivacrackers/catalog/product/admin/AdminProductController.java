@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Product management – OWNER only (checked here on the server for every request). */
+/** Product management – OWNER and MANAGER (checked here on the server for every request). */
 @RestController
 @RequestMapping("/api/admin/products")
-@PreAuthorize("hasRole('OWNER')")
+@PreAuthorize("hasAnyRole('OWNER', 'MANAGER')")
 @Validated
 public class AdminProductController {
 

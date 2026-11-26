@@ -55,9 +55,17 @@ public abstract class AbstractApiIT {
     @AfterAll
     void removeCatalogue() {
         requireTestDatabase();
+        jdbc.update("DELETE FROM stock_movements");
         jdbc.update("DELETE FROM products");
+        jdbc.update("DELETE FROM suppliers");
         jdbc.update("DELETE FROM brands");
         jdbc.update("DELETE FROM categories");
+        jdbc.update("DELETE FROM expenses");
+        // keep the 7 categories created by migration V4; remove ones added by tests
+        jdbc.update("DELETE FROM expense_categories WHERE name NOT IN "
+                + "('Shop rent', 'Electricity', 'Transport', 'Packaging', 'Staff salary', 'Maintenance', 'Other')");
+        jdbc.update("DELETE FROM shop_customers");
+        jdbc.update("DELETE FROM audit_log");
         jdbc.update("DELETE FROM users");
     }
 

@@ -1,0 +1,2 @@
+# Test-only: blocks any test from connecting to a database other than a local *_test one.
+org.springframework.context.ApplicationContextInitializer=com.sivacrackers.testsupport.TestDatabaseGuard

@@ -102,8 +102,16 @@ public class SecurityConfig {
                         // API documentation – only served when springdoc is enabled (dev profile)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/error").permitAll()
-                        // Staff-only area: finer role checks use @PreAuthorize on each endpoint
-                        .requestMatchers("/api/admin/**").hasAnyRole("OWNER", "MANAGER", "CASHIER")
+                        // Staff-only area – role table (Phase 0, confirmed for Phase 5/6). Checked here BEFORE the request
+                        // body is read, so unauthorised users get 403 rather than validation details; every controller
+                        // repeats the check with @PreAuthorize.
+                        .requestMatchers("/api/admin/staff/**", "/api/admin/staff", "/api/admin/audit/**", "/api/admin/audit",
+                                "/api/admin/banners/**", "/api/admin/banners").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.GET, "/api/admin/settings").hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers("/api/admin/settings").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.GET, "/api/admin/inventory", "/api/admin/inventory/**",
+                                "/api/admin/customers", "/api/admin/customers/**").hasAnyRole("OWNER", "MANAGER", "CASHIER")
+                        .requestMatchers("/api/admin/**").hasAnyRole("OWNER", "MANAGER")
                         // Everything else under /api needs a logged-in user; anything outside /api is denied
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll());

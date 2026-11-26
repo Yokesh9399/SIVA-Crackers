@@ -19,6 +19,8 @@ import com.sivacrackers.common.dto.PageResponse;
 import com.sivacrackers.common.exception.ConflictException;
 import com.sivacrackers.common.exception.InvalidRequestException;
 import com.sivacrackers.common.exception.NotFoundException;
+import com.sivacrackers.audit.AuditService;
+import com.sivacrackers.inventory.InventoryService;
 import com.sivacrackers.media.ImageCleanup;
 import com.sivacrackers.media.ImageFolder;
 import com.sivacrackers.media.ImageStorage;
@@ -39,13 +41,17 @@ public class AdminProductService {
     private final CategoryRepository categories;
     private final BrandRepository brands;
     private final ImageCleanup imageCleanup;
+    private final InventoryService inventory;
+    private final AuditService audit;
 
     public AdminProductService(ProductRepository products, CategoryRepository categories, BrandRepository brands,
-                               ImageCleanup imageCleanup) {
+                               ImageCleanup imageCleanup, InventoryService inventory, AuditService audit) {
         this.products = products;
         this.categories = categories;
         this.brands = brands;
         this.imageCleanup = imageCleanup;
+        this.inventory = inventory;
+        this.audit = audit;
     }
 
     @Transactional(readOnly = true)
@@ -73,12 +79,17 @@ public class AdminProductService {
         Product p = new Product(name, slug, sku, category(req.categoryId()), brand(req.brandId()),
                 req.packSize().trim(), req.unit(), req.mrp(), req.price());
         apply(p, req);
-        return toAdmin(save(p));
+        p.setStockQuantity(0);
+        Product saved = save(p);
+        inventory.recordFormChange(saved, 0, req.stockQuantity(), true);
+        return toAdmin(saved);
     }
 
     @Transactional
     public AdminProduct update(Long id, ProductRequest req) {
+        inventory.lock(id);
         Product p = find(id);
+        int previousStock = p.getStockQuantity();
         String name = req.name().trim();
         String slug = slugFor(req.slug(), name);
         String sku = req.sku().trim();
@@ -99,7 +110,9 @@ public class AdminProductService {
         p.setMrp(req.mrp());
         p.setPrice(req.price());
         apply(p, req);
+        p.setStockQuantity(previousStock);
         Product saved = save(p);
+        inventory.recordFormChange(saved, previousStock, req.stockQuantity(), false);
         imageCleanup.deleteIfUnusedAfterCommit(oldImages);
         return toAdmin(saved);
     }
@@ -107,6 +120,7 @@ public class AdminProductService {
     /** Show/hide, discontinue, feature or change stock straight from the list. */
     @Transactional
     public AdminProduct quickUpdate(Long id, QuickUpdateRequest req) {
+        inventory.lock(id);
         Product p = find(id);
         if (req.visibleOnWebsite() != null) {
             p.setVisibleOnWebsite(req.visibleOnWebsite());
@@ -117,10 +131,11 @@ public class AdminProductService {
         if (req.featured() != null) {
             p.setFeatured(req.featured());
         }
+        Product saved = products.saveAndFlush(p);
         if (req.stockQuantity() != null) {
-            p.setStockQuantity(req.stockQuantity());
+            inventory.recordFormChange(saved, saved.getStockQuantity(), req.stockQuantity(), false);
         }
-        return toAdmin(products.saveAndFlush(p));
+        return toAdmin(saved);
     }
 
     /**
@@ -133,6 +148,7 @@ public class AdminProductService {
         List<String> images = p.getImages().stream().map(ProductImage::getUrl).toList();
         products.delete(p);
         products.flush();
+        audit.record("PRODUCT_DELETED", "PRODUCT", id, p.getName() + " (" + p.getSku() + ")");
         imageCleanup.deleteIfUnusedAfterCommit(images);
     }
 
@@ -143,7 +159,6 @@ public class AdminProductService {
             throw new InvalidRequestException("price", "must not be more than the MRP");
         }
         p.setDescription(blankToNull(req.description()));
-        p.setStockQuantity(req.stockQuantity());
         p.setReorderLevel(req.reorderLevel());
         p.setFeatured(req.featured());
         p.setVisibleOnWebsite(req.visibleOnWebsite());

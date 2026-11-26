@@ -13,7 +13,7 @@ import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
 
 /** Admin product list filters (all products, any status). Search input is bound as parameters with LIKE wildcards escaped. */
-final class AdminProductSpecifications {
+public final class AdminProductSpecifications {
 
     private static final char ESCAPE = '\\';
 
@@ -21,7 +21,7 @@ final class AdminProductSpecifications {
     }
 
     @SuppressWarnings("unchecked")
-    static Specification<Product> matching(AdminProductQuery q) {
+    public static Specification<Product> matching(AdminProductQuery q) {
         return (root, query, cb) -> {
             boolean count = Long.class.equals(query.getResultType()) || long.class.equals(query.getResultType());
             Join<Product, Category> category = count ? root.join("category", JoinType.INNER)

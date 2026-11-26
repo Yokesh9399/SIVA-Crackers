@@ -142,26 +142,32 @@ class AdminApiIT extends AbstractApiIT {
     class Access {
 
         @Test
-        @DisplayName("Visitors get 401 on every admin endpoint; CUSTOMER, CASHIER and MANAGER get 403; OWNER 200")
+        @DisplayName("Catalogue admin: visitors 401, CUSTOMER and CASHIER 403, MANAGER and OWNER 200; homepage slides OWNER only")
         void roleMatrix() throws Exception {
             for (String path : List.of("/api/admin/dashboard", "/api/admin/products", "/api/admin/categories",
-                    "/api/admin/brands", "/api/admin/banners")) {
+                    "/api/admin/brands")) {
                 mvc.perform(get(path)).andExpect(status().isUnauthorized());
-                for (Cookie c : List.of(customer, cashier, manager)) {
+                for (Cookie c : List.of(customer, cashier)) {
                     mvc.perform(get(path).cookie(c)).andExpect(status().isForbidden());
                 }
+                mvc.perform(get(path).cookie(manager)).andExpect(status().isOk());
                 mvc.perform(get(path).cookie(owner)).andExpect(status().isOk());
             }
+            mvc.perform(get("/api/admin/banners")).andExpect(status().isUnauthorized());
+            for (Cookie c : List.of(customer, cashier, manager)) {
+                mvc.perform(get("/api/admin/banners").cookie(c)).andExpect(status().isForbidden());
+            }
+            mvc.perform(get("/api/admin/banners").cookie(owner)).andExpect(status().isOk());
         }
 
         @Test
-        @DisplayName("Writes need the OWNER role and a CSRF token; nothing is changed otherwise")
+        @DisplayName("Catalogue writes need OWNER or MANAGER and a CSRF token; nothing is changed otherwise")
         void writesProtected() throws Exception {
             long before = id("SELECT COUNT(*) FROM products");
             String body = product("Should Not Exist", "NOPE-1", "");
             mvc.perform(post("/api/admin/products").contentType(MediaType.APPLICATION_JSON).content(body).with(csrf()))
                     .andExpect(status().isUnauthorized());
-            mvc.perform(post("/api/admin/products").contentType(MediaType.APPLICATION_JSON).content(body).cookie(manager).with(csrf()))
+            mvc.perform(post("/api/admin/products").contentType(MediaType.APPLICATION_JSON).content(body).cookie(cashier).with(csrf()))
                     .andExpect(status().isForbidden());
             mvc.perform(post("/api/admin/products").contentType(MediaType.APPLICATION_JSON).content(body).cookie(owner))
                     .andExpect(status().isForbidden()); // no CSRF token

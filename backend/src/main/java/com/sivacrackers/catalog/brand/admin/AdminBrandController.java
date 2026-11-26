@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Brand management – OWNER only. */
+/** Brand management – OWNER and MANAGER. */
 @RestController
 @RequestMapping("/api/admin/brands")
-@PreAuthorize("hasRole('OWNER')")
+@PreAuthorize("hasAnyRole('OWNER', 'MANAGER')")
 public class AdminBrandController {
 
     private final AdminBrandService service;

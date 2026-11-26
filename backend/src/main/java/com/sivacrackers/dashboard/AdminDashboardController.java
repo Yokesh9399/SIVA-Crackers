@@ -20,12 +20,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Dashboard figures, all counted live from the catalogue tables. There are deliberately no sales,
- * order or revenue figures: the website does not sell online.
+ * Dashboard figures, all counted live from the database (catalogue, staff, suppliers, expenses). There are
+ * deliberately no sales, order or revenue figures: nothing is sold online and in-store billing is not approved.
  */
 @RestController
 @RequestMapping("/api/admin/dashboard")
-@PreAuthorize("hasRole('OWNER')")
+@PreAuthorize("hasAnyRole('OWNER', 'MANAGER')")
 public class AdminDashboardController {
 
     public record CategoryCount(Long categoryId, String name, String slug, boolean active, long productCount) {
@@ -35,17 +35,29 @@ public class AdminDashboardController {
             long totalProducts, long activeProducts, long inactiveProducts, long visibleProducts, long hiddenProducts,
             long featuredProducts, long lowStockProducts, long outOfStockProducts, long demoProducts,
             long totalCategories, long activeCategories, long totalBrands, long activeBrands,
+            long totalStaff, long activeStaff, long activeSuppliers, java.math.BigDecimal expensesThisMonth,
             List<CategoryCount> productsByCategory, List<AdminProductRow> recentProducts) {
     }
+
+    private static final java.util.Set<com.sivacrackers.user.Role> STAFF = java.util.EnumSet.of(
+            com.sivacrackers.user.Role.OWNER, com.sivacrackers.user.Role.MANAGER, com.sivacrackers.user.Role.CASHIER);
 
     private final ProductRepository products;
     private final CategoryRepository categories;
     private final BrandRepository brands;
+    private final com.sivacrackers.user.UserRepository users;
+    private final com.sivacrackers.supplier.SupplierRepository suppliers;
+    private final com.sivacrackers.expense.ExpenseService expenses;
 
-    public AdminDashboardController(ProductRepository products, CategoryRepository categories, BrandRepository brands) {
+    public AdminDashboardController(ProductRepository products, CategoryRepository categories, BrandRepository brands,
+                                    com.sivacrackers.user.UserRepository users, com.sivacrackers.supplier.SupplierRepository suppliers,
+                                    com.sivacrackers.expense.ExpenseService expenses) {
         this.products = products;
         this.categories = categories;
         this.brands = brands;
+        this.users = users;
+        this.suppliers = suppliers;
+        this.expenses = expenses;
     }
 
     @GetMapping
@@ -65,6 +77,7 @@ public class AdminDashboardController {
                 products.countByActiveTrueAndVisibleOnWebsiteTrue(), products.countByActiveTrueAndVisibleOnWebsiteFalse(),
                 products.countByActiveTrueAndFeaturedTrue(), products.countActiveLowStock(), products.countActiveOutOfStock(),
                 products.countByDemoTrue(), categories.count(), categories.countByActiveTrue(), brands.count(),
-                brands.countByActiveTrue(), byCategory, recent);
+                brands.countByActiveTrue(), users.countByRoleIn(STAFF), users.countByRoleInAndActiveTrue(STAFF),
+                suppliers.countByActiveTrue(), expenses.thisMonthTotal(), byCategory, recent);
     }
 }

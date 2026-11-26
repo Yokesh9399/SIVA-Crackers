@@ -6,12 +6,13 @@ import FormField, { FormMessage } from '../../components/auth/FormField.jsx';
 import { useAuth } from '../../hooks/useAuth.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
 import { USE_MOCKS } from '../../config/env.js';
+import { STAFF_ROLES } from '../roles.js';
 
 function safeAdminPath(path) {
   return typeof path === 'string' && path.startsWith('/admin') && !path.startsWith('/admin/login') ? path : '/admin';
 }
 
-/** /admin/login – staff login; only the OWNER account can use the dashboard. */
+/** /admin/login – staff login (OWNER, MANAGER, CASHIER); each role then sees only its own sections. */
 export default function AdminLoginPage() {
   useDocumentTitle('Admin login');
   const { status, user, staffLogin, sessionExpired } = useAuth();
@@ -25,7 +26,7 @@ export default function AdminLoginPage() {
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  if (status === 'authenticated' && user?.role === 'OWNER' && !submitting) return <Navigate to={returnTo} replace />;
+  if (status === 'authenticated' && STAFF_ROLES.includes(user?.role) && !submitting) return <Navigate to={returnTo} replace />;
 
   async function submit(e) {
     e.preventDefault();
@@ -53,8 +54,8 @@ export default function AdminLoginPage() {
       ? 'You have been logged out.'
       : location.state?.expired || sessionExpired
         ? 'Your session has ended. Please log in again.'
-        : status === 'authenticated' && user?.role !== 'OWNER'
-          ? `You are logged in as ${user?.fullName}. Log in with the owner account to manage the catalogue.`
+        : status === 'authenticated' && !STAFF_ROLES.includes(user?.role)
+          ? `You are logged in as ${user?.fullName} (website account). Log in with a staff account to use the admin.`
           : '';
 
   return (
@@ -70,7 +71,7 @@ export default function AdminLoginPage() {
             </span>
             <div>
               <h1 className="text-xl font-bold">Admin login</h1>
-              <p className="text-sm text-slate-500">For the shop owner only.</p>
+              <p className="text-sm text-slate-500">For shop staff only.</p>
             </div>
           </div>
           {notice && <FormMessage tone="info">{notice}</FormMessage>}

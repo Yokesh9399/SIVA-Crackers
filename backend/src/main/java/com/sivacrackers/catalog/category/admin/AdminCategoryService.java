@@ -10,6 +10,7 @@ import com.sivacrackers.common.Slugs;
 import com.sivacrackers.common.exception.ConflictException;
 import com.sivacrackers.common.exception.InvalidRequestException;
 import com.sivacrackers.common.exception.NotFoundException;
+import com.sivacrackers.audit.AuditService;
 import com.sivacrackers.media.ImageCleanup;
 import com.sivacrackers.media.ImageFolder;
 import com.sivacrackers.media.ImageStorage;
@@ -28,11 +29,14 @@ public class AdminCategoryService {
     private final CategoryRepository categories;
     private final ProductRepository products;
     private final ImageCleanup imageCleanup;
+    private final AuditService audit;
 
-    public AdminCategoryService(CategoryRepository categories, ProductRepository products, ImageCleanup imageCleanup) {
+    public AdminCategoryService(CategoryRepository categories, ProductRepository products, ImageCleanup imageCleanup,
+                                AuditService audit) {
         this.categories = categories;
         this.products = products;
         this.imageCleanup = imageCleanup;
+        this.audit = audit;
     }
 
     @Transactional(readOnly = true)
@@ -99,6 +103,7 @@ public class AdminCategoryService {
         String image = c.getImageUrl();
         categories.delete(c);
         categories.flush();
+        audit.record("CATEGORY_DELETED", "CATEGORY", id, c.getName());
         imageCleanup.deleteIfUnusedAfterCommit(java.util.Collections.singletonList(image));
     }
 

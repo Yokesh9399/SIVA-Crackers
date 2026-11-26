@@ -23,11 +23,14 @@ describe('Protected admin routes', () => {
     expect(screen.getByRole('status', { name: 'Loading' })).toBeInTheDocument();
   });
 
-  it('refuses customers and other staff (only the OWNER may use the dashboard)', () => {
-    for (const role of ['CUSTOMER', 'MANAGER', 'CASHIER']) {
-      const { unmount } = renderAdmin(protectedRoutes(), { at: '/admin', auth: { user: { fullName: 'Asha', role } } });
-      expect(screen.getByRole('heading', { name: 'No access to the admin dashboard' })).toBeInTheDocument();
-      unmount();
+  it('refuses website customers; lets every staff role in (pages then check the role)', () => {
+    const { unmount } = renderAdmin(protectedRoutes(), { at: '/admin', auth: { user: { fullName: 'Asha', role: 'CUSTOMER' } } });
+    expect(screen.getByRole('heading', { name: 'No access to the admin dashboard' })).toBeInTheDocument();
+    unmount();
+    for (const role of ['MANAGER', 'CASHIER']) {
+      const { unmount: u } = renderAdmin(protectedRoutes(), { at: '/admin', auth: { user: { fullName: 'Ravi', role } } });
+      expect(screen.queryByText('No access to the admin dashboard')).not.toBeInTheDocument();
+      u();
     }
   });
 

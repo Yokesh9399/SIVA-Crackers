@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Package, Eye, EyeOff, Archive, Star, AlertTriangle, PackageX, Tags, Award, Plus, PanelsTopLeft, FlaskConical } from 'lucide-react';
+import { Package, Eye, EyeOff, Archive, Star, AlertTriangle, PackageX, Tags, Award, Plus, PanelsTopLeft, FlaskConical, Users, Truck, Wallet, ArrowDownUp } from 'lucide-react';
+import { fmtMoney } from '../format.js';
+import { useAuth } from '../../hooks/useAuth.js';
 import AdminPageHeader from '../components/AdminPageHeader.jsx';
 import { AdminImage } from '../components/ImageUploader.jsx';
 import { StockBadge, VisibilityBadge, DemoBadge } from '../components/Badges.jsx';
@@ -33,6 +35,7 @@ function StatCard({ icon: Icon, label, value, to, tone = 'text-navy-900' }) {
 
 /** /admin – live catalogue figures (no sales or order figures: nothing is sold online). */
 export default function DashboardPage() {
+  const { user } = useAuth();
   const { data: d, loading, error, retry } = useAsync(() => adminService.dashboard(), []);
 
   const actions = (
@@ -68,7 +71,7 @@ export default function DashboardPage() {
 
       <section aria-label="Catalogue figures" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
         {loading || !d ? (
-          Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-[4.5rem]" />)
+          Array.from({ length: 12 }, (_, i) => <Skeleton key={i} className="h-[4.5rem]" />)
         ) : (
           <>
             <StatCard icon={Package} label="Total products" value={d.totalProducts} to="/admin/products" />
@@ -76,10 +79,13 @@ export default function DashboardPage() {
             <StatCard icon={Archive} label="Inactive products" value={d.inactiveProducts} to="/admin/products?visibility=INACTIVE" />
             <StatCard icon={EyeOff} label="Hidden from website" value={d.hiddenProducts} to="/admin/products?visibility=HIDDEN" />
             <StatCard icon={Star} label="Featured on homepage" value={d.featuredProducts} />
-            <StatCard icon={AlertTriangle} label="Few left" value={d.lowStockProducts} tone="text-amber-700" to="/admin/products?availability=LOW_STOCK" />
-            <StatCard icon={PackageX} label="Out of stock" value={d.outOfStockProducts} tone="text-red-700" to="/admin/products?availability=OUT_OF_STOCK" />
+            <StatCard icon={AlertTriangle} label="Few left" value={d.lowStockProducts} tone="text-amber-700" to="/admin/inventory?availability=LOW_STOCK" />
+            <StatCard icon={PackageX} label="Out of stock" value={d.outOfStockProducts} tone="text-red-700" to="/admin/inventory?availability=OUT_OF_STOCK" />
             <StatCard icon={Tags} label={`Categories (${d.activeCategories} active)`} value={d.totalCategories} to="/admin/categories" />
             <StatCard icon={Award} label={`Brands (${d.activeBrands} active)`} value={d.totalBrands} to="/admin/brands" />
+            <StatCard icon={Users} label={`Staff (${d.activeStaff} active)`} value={d.totalStaff} to={user?.role === 'OWNER' ? '/admin/staff' : undefined} />
+            <StatCard icon={Truck} label="Active suppliers" value={d.activeSuppliers} to="/admin/suppliers" />
+            <StatCard icon={Wallet} label="Expenses this month" value={fmtMoney(d.expensesThisMonth)} to="/admin/expenses" />
           </>
         )}
       </section>
@@ -161,12 +167,14 @@ export default function DashboardPage() {
         <h2 id="quick-title" className="mb-3 text-lg font-bold">
           Quick actions
         </h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { to: '/admin/products/new', icon: Plus, label: 'Add a product' },
+            { to: '/admin/inventory', icon: ArrowDownUp, label: 'Record stock' },
+            { to: '/admin/expenses', icon: Wallet, label: 'Record an expense' },
             { to: '/admin/categories?new=1', icon: Tags, label: 'Add a category' },
             { to: '/admin/brands?new=1', icon: Award, label: 'Add a brand' },
-            { to: '/admin/content', icon: PanelsTopLeft, label: 'Edit homepage content' },
+            ...(user?.role === 'OWNER' ? [{ to: '/admin/content', icon: PanelsTopLeft, label: 'Edit homepage content' }] : []),
           ].map(({ to, icon: Icon, label }) => (
             <Link key={to} to={to} className="admin-card flex items-center gap-3 p-4 font-medium transition hover:ring-gold-400">
               <Icon className="size-5 text-orange-600" aria-hidden="true" /> {label}

@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * OWNER-only image upload: {@code POST /api/admin/uploads/{products|brands|categories}} with a multipart
+ * Image upload (OWNER and MANAGER): {@code POST /api/admin/uploads/{products|brands|categories}} with a multipart
  * field {@code file}. Returns {@code {"url": "/uploads/…"}}; the URL is then saved with the product, brand
  * or category. Validation happens here on the server (format from content, size, dimensions).
  */
 @RestController
 @RequestMapping("/api/admin/uploads")
-@PreAuthorize("hasRole('OWNER')")
+@PreAuthorize("hasAnyRole('OWNER', 'MANAGER')")
 public class AdminUploadController {
 
     private final ImageStorage storage;

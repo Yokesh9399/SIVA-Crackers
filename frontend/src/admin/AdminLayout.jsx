@@ -1,22 +1,15 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, Tags, Award, PanelsTopLeft, Settings, LogOut, Menu, X, ExternalLink } from 'lucide-react';
+import { LogOut, Menu, X, ExternalLink } from 'lucide-react';
 import Logo from '../components/layout/Logo.jsx';
 import { useAuth } from '../hooks/useAuth.js';
+import { ROLE_LABELS, sectionsFor } from './roles.js';
 
-const ADMIN_NAV = [
-  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/admin/products', label: 'Products', icon: Package },
-  { to: '/admin/categories', label: 'Categories', icon: Tags },
-  { to: '/admin/brands', label: 'Brands', icon: Award },
-  { to: '/admin/content', label: 'Website Content', icon: PanelsTopLeft },
-  { to: '/admin/settings', label: 'Business Settings', icon: Settings },
-];
 
-function NavItems({ onNavigate }) {
+function NavItems({ role, onNavigate }) {
   return (
     <ul className="space-y-1">
-      {ADMIN_NAV.map(({ to, label, icon: Icon, end }) => (
+      {sectionsFor(role).map(({ to, label, icon: Icon, end }) => (
         <li key={to}>
           <NavLink
             to={to}
@@ -37,7 +30,8 @@ function NavItems({ onNavigate }) {
   );
 }
 
-/** Admin shell: sidebar on large screens, slide-in menu on phones and tablets, top bar with the owner's name. */
+/** Admin shell: sidebar on large screens, slide-in menu on phones and tablets, top bar with the user's name and role.
+ * The menu shows only the sections the user's role may open. */
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -82,13 +76,13 @@ export default function AdminLayout() {
       </a>
 
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-navy-900 p-4 lg:flex" aria-label="Admin navigation">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-navy-900 p-4 lg:flex print:hidden" aria-label="Admin navigation">
         <div className="mb-6 px-2">
           <Logo />
           <p className="mt-2 text-xs font-semibold tracking-wider text-gold-400 uppercase">Admin dashboard</p>
         </div>
         <nav className="flex-1 overflow-y-auto">
-          <NavItems />
+          <NavItems role={user?.role} />
         </nav>
         {sidebarFooter}
       </aside>
@@ -105,15 +99,15 @@ export default function AdminLayout() {
               </button>
             </div>
             <nav className="flex-1 overflow-y-auto" key={location.pathname}>
-              <NavItems onNavigate={() => setMenuOpen(false)} />
+              <NavItems role={user?.role} onNavigate={() => setMenuOpen(false)} />
             </nav>
             {sidebarFooter}
           </div>
         </div>
       )}
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6">
+      <div className="lg:pl-64 print:pl-0">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 print:hidden">
           <button
             type="button"
             className="grid size-10 place-items-center rounded-full text-navy-900 hover:bg-slate-100 lg:hidden"
@@ -127,7 +121,7 @@ export default function AdminLayout() {
           <div className="ml-auto flex min-w-0 items-center gap-3">
             <div className="min-w-0 text-right">
               <p className="truncate text-sm font-semibold text-navy-900">{user?.fullName}</p>
-              <p className="text-xs text-slate-500">Owner</p>
+              <p className="text-xs text-slate-500">{ROLE_LABELS[user?.role] ?? 'Staff'}</p>
             </div>
             <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gold-400 font-display font-bold text-navy-950" aria-hidden="true">
               {user?.fullName?.trim()?.[0]?.toUpperCase() ?? 'O'}

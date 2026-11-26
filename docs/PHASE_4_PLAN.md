@@ -326,3 +326,16 @@ Frontend: `VITE_USE_MOCKS=false`, `VITE_API_URL=/api`, and a Vite dev proxy `/ap
 ### What I will need from you before step 4.2
 - Either create the `siva_app` user yourself with the SQL I provide, **or** tell me to use an existing MySQL account. In both cases you put the password in your own environment variables. Please don't paste passwords into the chat.
 - Choose an email and password for the first OWNER account and set them as `BOOTSTRAP_OWNER_EMAIL` / `BOOTSTRAP_OWNER_PASSWORD`.
+
+---
+
+## Completion status (updated 26 Nov 2026)
+
+| Item | Status | Evidence |
+|---|---|---|
+| Development database `siva_crackers` | **Done** | `DB_PASSWORD` corrected locally (value never displayed); backend started against it: Flyway applied V1–V3, then V4; demo catalogue seeded (12 / 8 / 48); public APIs 200, unknown product 404 |
+| `docs/API.md` | **Done** | All 91 endpoints that exist in the code, with auth, roles, parameters, bodies, responses and errors |
+| Postman collection | **Done** (in `docs/postman/`, not `postman/`) | `SivaCrackers.postman_collection.json` (93 requests covering all 91 endpoints; CSRF header filled automatically) + `SivaCrackers.local.postman_environment.json` (placeholders only, no credentials) |
+| Test-database safeguard | **Strengthened** | Besides the `_test`/localhost checks in the integration tests, every Spring test context now refuses to open a connection pool to anything but a local `*_test` MySQL database (`TestDatabaseGuard`, registered in `src/test/resources/META-INF/spring.factories`; tested by `TestDatabaseGuardTest`) |
+| Backend verification | **Done** | `run-integration-tests.ps1`: 175 / 175 (58 unit/web + 117 MySQL) |
+

@@ -1,5 +1,5 @@
 import apiClient from '../services/apiClient.js';
-import { USE_MOCKS } from '../config/env.js';
+import { API_URL, USE_MOCKS } from '../config/env.js';
 
 /**
  * OWNER admin API (/api/admin/**). Every call is checked again on the server (role + CSRF).
@@ -57,6 +57,50 @@ export const adminService = {
   getSettings: () => call(() => apiClient.get('/admin/settings')),
   updateSettings: (body) => call(() => apiClient.put('/admin/settings', body)),
 
+  // ----- staff (OWNER)
+  listStaff: (filters = {}) => call(() => apiClient.get('/admin/staff', { params: params(filters) })),
+  createStaff: (body) => call(() => apiClient.post('/admin/staff', body)),
+  updateStaff: (id, body) => call(() => apiClient.put(`/admin/staff/${id}`, body)),
+  setStaffActive: (id, active) => call(() => apiClient.patch(`/admin/staff/${id}/status`, { active })),
+  resetStaffPassword: (id, newPassword) => call(() => apiClient.post(`/admin/staff/${id}/reset-password`, { newPassword })),
+  auditLog: (filters = {}) => call(() => apiClient.get('/admin/audit', { params: params(filters) })),
+
+  // ----- inventory
+  listStock: (filters) => call(() => apiClient.get('/admin/inventory', { params: params(filters) })),
+  stockAlerts: () => call(() => apiClient.get('/admin/inventory/alerts')),
+  movementReasons: () => call(() => apiClient.get('/admin/inventory/reasons')),
+  stockOf: (productId) => call(() => apiClient.get(`/admin/inventory/products/${productId}`)),
+  listMovements: (filters) => call(() => apiClient.get('/admin/inventory/movements', { params: params(filters) })),
+  recordMovement: (body) => call(() => apiClient.post('/admin/inventory/movements', body)),
+  setThreshold: (productId, reorderLevel) =>
+    call(() => apiClient.patch(`/admin/inventory/products/${productId}/threshold`, { reorderLevel })),
+
+  // ----- suppliers
+  listSuppliers: (filters = {}) => call(() => apiClient.get('/admin/suppliers', { params: params(filters) })),
+  getSupplier: (id) => call(() => apiClient.get(`/admin/suppliers/${id}`)),
+  createSupplier: (body) => call(() => apiClient.post('/admin/suppliers', body)),
+  updateSupplier: (id, body) => call(() => apiClient.put(`/admin/suppliers/${id}`, body)),
+  setSupplierActive: (id, active) => call(() => apiClient.patch(`/admin/suppliers/${id}/status`, { active })),
+
+  // ----- expenses
+  expenseCategories: () => call(() => apiClient.get('/admin/expense-categories')),
+  createExpenseCategory: (body) => call(() => apiClient.post('/admin/expense-categories', body)),
+  updateExpenseCategory: (id, body) => call(() => apiClient.put(`/admin/expense-categories/${id}`, body)),
+  listExpenses: (filters) => call(() => apiClient.get('/admin/expenses', { params: params(filters) })),
+  createExpense: (body) => call(() => apiClient.post('/admin/expenses', body)),
+  updateExpense: (id, body) => call(() => apiClient.put(`/admin/expenses/${id}`, body)),
+  cancelExpense: (id, reason) => call(() => apiClient.post(`/admin/expenses/${id}/cancel`, { reason })),
+  monthlyExpenses: (year) => call(() => apiClient.get('/admin/expenses/summary/monthly', { params: params({ year }) })),
+
+  // ----- shop customers (contacts only)
+  listCustomers: (search) => call(() => apiClient.get('/admin/customers', { params: params({ search }) })),
+  createCustomer: (body) => call(() => apiClient.post('/admin/customers', body)),
+  updateCustomer: (id, body) => call(() => apiClient.put(`/admin/customers/${id}`, body)),
+  deleteCustomer: (id) => call(() => apiClient.delete(`/admin/customers/${id}`)),
+
+  // ----- reports (JSON); CSV files are downloaded with reportCsvUrl()
+  report: (name, filters) => call(() => apiClient.get(`/admin/reports/${name}`, { params: params(filters) })),
+
   /** Uploads one image; folder = products | brands | categories. Returns the stored URL. */
   uploadImage: (folder, file) =>
     call(() => {
@@ -74,4 +118,10 @@ export function checkImageFile(file) {
   if (!IMAGE_RULES.types.includes(file.type)) return 'Please choose a JPEG, PNG or WebP image.';
   if (file.size > IMAGE_RULES.maxBytes) return 'The image is larger than 2 MB. Please choose a smaller one.';
   return null;
+}
+
+/** Same-origin link to a CSV report download (the browser sends the login cookie). */
+export function reportCsvUrl(name, filters = {}) {
+  const q = new URLSearchParams({ ...params(filters), format: 'csv' });
+  return `${API_URL}/admin/reports/${name}?${q}`;
 }

@@ -8,7 +8,7 @@ There are deliberately **no** orders, sales, payments, bookings, carts or checko
 | Decision | Reason |
 |---|---|
 | Admin lives inside `frontend/` under `/admin` (lazy-loaded chunks, own layout) instead of a second app in `admin/` (Phase 0 idea) | The Phase 5 brief asks not to create a new project; since Phase 4 the login is an HttpOnly cookie on the site's own origin, so one app reuses the API client, CSRF handling, auth context and theme. Visitors never download admin code: it is split into separate files loaded only when `/admin` is opened |
-| **OWNER only** for every Phase 5 endpoint (`@PreAuthorize("hasRole('OWNER')")` on each controller) | Brief: only the OWNER manages the catalogue. MANAGER/CASHIER/CUSTOMER get 403 from the API and a "No access" page in the browser. Existing Phase 4 rule kept: MANAGER may read `/api/admin/settings` |
+| Roles – **updated 26 Nov 2026**: the Phase 0 role table (see [API.md](API.md) §1) replaces the original owner-only rule | Decided by the owner. Catalogue admin, uploads and dashboard: OWNER and MANAGER; homepage slides, settings changes, staff, activity log: OWNER only. Checked by URL rule before the body is read and again with `@PreAuthorize` |
 | **No database migration** | The Phase 4 schema already has every field (product code, MRP, price, stock, "few left" level, featured/visible/active, images; category picture, brand logo, display order, active; banners) |
 | Images on the server's disk (`APP_UPLOAD_DIR`, default `backend/uploads/`, git-ignored), served at `/uploads/**` | As planned in Phase 0; no cloud account needed. Storage is one class (`ImageStorage`) so it can move to cloud storage later |
 | Business details reuse the Phase 4 `GET/PUT /api/admin/settings` | No duplicate API |

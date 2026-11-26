@@ -1,7 +1,16 @@
 # Phase 5 – Admin dashboard: notes
 
-**Status:** implemented and tested; committed locally (not pushed). One planned check – clicking through the admin while logged in, in a real browser – was **not done** (see "Not verified").
+**Status:** first part committed and pushed as `95f99fe`. Second part (26 Nov 2026, **not committed yet**): staff management, the Phase 0 role table and dashboard additions – see "Phase 5 completion" below. Still **not verified**: clicking through the logged-in admin in a real browser.
 Reference: [PHASE_5_IMPLEMENTATION.md](PHASE_5_IMPLEMENTATION.md).
+
+## Phase 5 completion (26 Nov 2026)
+
+- **Role decision:** the Phase 0 role table replaces the owner-only rule (your answer on 26 Nov 2026). OWNER: everything. MANAGER: dashboard, products, categories, brands, uploads, stock, suppliers, expenses, shop customers, reports; reads business settings. CASHIER: views stock and stock history, looks up customers. Only the OWNER: staff, activity log, homepage slides, changing settings.
+- **Enforced on the server twice:** URL rules in `SecurityConfig` (checked before the request body is read – so unauthorised users get 403, never validation details) and `@PreAuthorize` on every controller.
+- **Staff management** (`/admin/staff`, OWNER): list with role, status, creation date and last login; search; filter by role and status; create MANAGER/CASHIER (never OWNER); edit name, email, mobile, role; activate / deactivate (with confirmation); reset password (temporary password given in person). Rules: no one can change their own role or deactivate themselves; an OWNER cannot be re-assigned or deactivated; role change, deactivation and password reset end that person's sessions immediately; deactivated accounts cannot log in; every action is in the **activity log** (`/admin/activity`, OWNER) – passwords never logged.
+- **Admin for all staff roles:** staff login accepts OWNER, MANAGER and CASHIER; the menu shows only the sections of the person's role; other pages show "not available for your role"; cashiers start on the Stock page; website customers are refused.
+- **Dashboard:** adds total / active staff, active suppliers, this month's expenses; low-stock and out-of-stock counts link to the Stock page.
+- Tests: backend `StaffApiIT` (6) and role checks in `AdminApiIT` / `BusinessApiIT`; frontend `roles.test.jsx` (3) and staff tests in `phase6.test.jsx` (3). Totals: backend 175 / 175, frontend 47 / 47.
 
 ## Delivered
 

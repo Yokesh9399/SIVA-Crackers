@@ -34,6 +34,23 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     boolean existsBySlug(String slug);
 
+    // ---------- Inventory (Phase 6) ----------
+
+    /** Locks the product row until the transaction ends, so two stock changes can never overwrite each other. */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Product p where p.id = :id")
+    Optional<Product> findForUpdateById(@org.springframework.data.repository.query.Param("id") Long id);
+
+    /** Active products at or below their "few left" level but not empty, lowest stock first. */
+    @EntityGraph(attributePaths = {"category", "brand"})
+    @Query("select p from Product p where p.active = true and p.stockQuantity > 0 and p.stockQuantity <= p.reorderLevel order by p.stockQuantity asc, p.name asc")
+    List<Product> findActiveLowStock();
+
+    /** Active products with no stock. */
+    @EntityGraph(attributePaths = {"category", "brand"})
+    @Query("select p from Product p where p.active = true and p.stockQuantity = 0 order by p.name asc")
+    List<Product> findActiveOutOfStock();
+
     boolean existsBySlugAndIdNot(String slug, Long id);
 
     boolean existsBySkuAndIdNot(String sku, Long id);

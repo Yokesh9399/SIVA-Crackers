@@ -41,24 +41,24 @@ class SchemaMigrationIT extends AbstractMySqlIT {
     }
 
     @Test
-    @DisplayName("Flyway applied V1, V2 and V3 successfully, in order")
+    @DisplayName("Flyway applied V1 to V4 successfully, in order")
     void migrationsApplied() {
         List<String> applied = jdbc.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success = 1 AND version IS NOT NULL ORDER BY installed_rank",
                 String.class);
-        assertThat(applied).containsExactly("1", "2", "3");
+        assertThat(applied).containsExactly("1", "2", "3", "4");
     }
 
     @Test
-    @DisplayName("Exactly the approved 10 tables exist (plus Flyway's history)")
+    @DisplayName("Exactly the approved 16 tables exist (plus Flyway's history)")
     void approvedTables() {
         List<String> tables = jdbc.queryForList(
                 "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name",
                 String.class);
         assertThat(tables).containsExactlyInAnyOrder(
-                "banners", "brands", "business_highlights", "business_settings", "categories",
-                "category_safety_notes", "flyway_schema_history", "product_images", "products",
-                "safety_tips", "users");
+                "audit_log", "banners", "brands", "business_highlights", "business_settings", "categories",
+                "category_safety_notes", "expense_categories", "expenses", "flyway_schema_history", "product_images",
+                "products", "safety_tips", "shop_customers", "stock_movements", "suppliers", "users");
     }
 
     @Test

@@ -4,7 +4,7 @@ REST API for the SIVA Crackers information catalogue.
 
 > The website is an information catalogue only. This backend has **no** checkout, online payment, online ordering, booking or reservation features.
 
-**Status:** Phase 5 complete – public read-only catalogue API, customer/staff login (HttpOnly cookie sessions, CSRF, lockout, roles, OWNER bootstrap) and the OWNER-only admin API (dashboard, products, categories, brands, homepage slides, image uploads). References: [`../docs/PHASE_4_IMPLEMENTATION.md`](../docs/PHASE_4_IMPLEMENTATION.md), [`../docs/PHASE_5_IMPLEMENTATION.md`](../docs/PHASE_5_IMPLEMENTATION.md).
+**Status:** Phases 4–6 – public read-only catalogue API, customer/staff login (HttpOnly cookie sessions, CSRF, lockout, OWNER bootstrap), role-based admin API (catalogue, uploads, staff, stock, suppliers, expenses, shop customers, reports, activity log). **Full endpoint reference: [`../docs/API.md`](../docs/API.md)**; Postman collection: [`../docs/postman/`](../docs/postman/).
 
 ## Tech stack
 
@@ -120,7 +120,15 @@ Start the backend once. The OWNER is created only if no OWNER exists yet (passwo
 
 ## Admin dashboard (Phase 5)
 
-The OWNER manages the catalogue at **http://localhost:5173/admin** (website and admin share one origin; Vite forwards `/api` and `/uploads` to this backend). Log in with the OWNER account created above. MANAGER, CASHIER and CUSTOMER accounts are refused – both in the browser and by the API (`@PreAuthorize("hasRole('OWNER')")` on every admin endpoint). Endpoints: [`../docs/PHASE_5_IMPLEMENTATION.md`](../docs/PHASE_5_IMPLEMENTATION.md).
+Staff use **http://localhost:5173/admin** (website and admin share one origin; Vite forwards `/api` and `/uploads` to this backend). Log in with the OWNER account created above; the OWNER then creates MANAGER and CASHIER accounts under **Staff**. Role table (enforced by URL rules before the request body is read, and again with `@PreAuthorize`):
+
+| Role | Can use |
+|---|---|
+| OWNER | everything, incl. staff, activity log, homepage slides, business settings |
+| MANAGER | dashboard, products, categories, brands, uploads, stock, suppliers, expenses, shop customers, reports; reads settings |
+| CASHIER | stock and stock history (view only), customer look-up |
+
+Website customer accounts are refused. Endpoints: [`../docs/API.md`](../docs/API.md).
 
 Uploaded images are stored in `APP_UPLOAD_DIR` (default `backend/uploads/`) under random names, with location/camera metadata removed, and served read-only at `/uploads/{products|brands|categories}/…`. Back this folder up together with the database.
 

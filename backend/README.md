@@ -4,7 +4,7 @@ REST API for the SIVA Crackers information catalogue.
 
 > The website is an information catalogue only. This backend has **no** checkout, online payment, online ordering, booking or reservation features.
 
-**Status:** Phases 4–6 – public read-only catalogue API, customer/staff login (HttpOnly cookie sessions, CSRF, lockout, OWNER bootstrap), role-based admin API (catalogue, uploads, staff, stock, suppliers, expenses, shop customers, reports, activity log). **Full endpoint reference: [`../docs/API.md`](../docs/API.md)**; Postman collection: [`../docs/postman/`](../docs/postman/).
+**Status:** Phases 4–6 – public read-only catalogue API, customer/staff login (HttpOnly cookie sessions, CSRF, lockout, OWNER bootstrap), role-based admin API (catalogue, uploads, staff, stock, suppliers, expenses, shop customers, in-store billing with PDF invoices, reports with CSV/PDF, activity log). **Full endpoint reference: [`../docs/API.md`](../docs/API.md)**; Postman collection: [`../docs/postman/`](../docs/postman/).
 
 ## Tech stack
 
@@ -126,7 +126,9 @@ Staff use **http://localhost:5173/admin** (website and admin share one origin; V
 |---|---|
 | OWNER | everything, incl. staff, activity log, homepage slides, business settings |
 | MANAGER | dashboard, products, categories, brands, uploads, stock, suppliers, expenses, shop customers, reports; reads settings |
-| CASHIER | stock and stock history (view only), customer look-up |
+| CASHIER | in-store billing (create bills, history, invoices, mark paid – not void), stock and stock history (view only), customer look-up and add |
+
+Voiding bills: OWNER and MANAGER. Payment methods: listed for all staff, changed by the OWNER only.
 
 Website customer accounts are refused. Endpoints: [`../docs/API.md`](../docs/API.md).
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, ReceiptText } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import AdminPageHeader from '../components/AdminPageHeader.jsx';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import Modal from '../components/Modal.jsx';
@@ -13,12 +14,13 @@ import { useAuth } from '../../hooks/useAuth.js';
 import { useToast } from '../hooks/useToast.js';
 import { adminService } from '../adminService.js';
 import { canEdit } from '../roles.js';
-import { fmtDateTime } from '../format.js';
+import { fmtDateTime, fmtMoney } from '../format.js';
+import { Badge } from '../components/Badges.jsx';
 import { formErrorMessage, serverFieldErrors, validateName, validatePhone } from '../../utils/authValidation.js';
 
 const LABELS = { fullName: 'Name', phone: 'Mobile number', email: 'Email', address: 'Address', notes: 'Notes' };
 
-function CustomerForm({ customer, onClose, onSaved }) {
+export function CustomerForm({ customer, onClose, onSaved }) {
   const toast = useToast();
   const [form, setForm] = useState({
     fullName: customer?.fullName ?? '', phone: customer?.phone ?? '', email: customer?.email ?? '',
@@ -43,7 +45,7 @@ function CustomerForm({ customer, onClose, onSaved }) {
     try {
       const saved = customer ? await adminService.updateCustomer(customer.id, body) : await adminService.createCustomer(body);
       toast.success(customer ? `${saved.fullName}'s details were saved.` : `${saved.fullName} was added.`);
-      onSaved();
+      onSaved(saved);
     } catch (err) {
       setErrors(serverFieldErrors(err, LABELS));
       setFormError(formErrorMessage(err));
@@ -78,6 +80,53 @@ function CustomerForm({ customer, onClose, onSaved }) {
   );
 }
 
+/** Purchase history from in-store bills. Totals count finalized bills only (voided bills are not purchases). */
+function PurchaseHistory({ customer, onClose }) {
+  const [page, setPage] = useState(0);
+  const bills = useAsync(() => adminService.customerBills(customer.id, page), [customer.id, page]);
+  const d = bills.data;
+  return (
+    <Modal title={`Purchases – ${customer.fullName}`} onClose={onClose} size="lg">
+      {bills.error ? (
+        <ErrorState message={bills.error.message} onRetry={bills.retry} />
+      ) : !d ? (
+        <Skeleton className="h-32" />
+      ) : (
+        <>
+          <dl className="mb-4 grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-lg bg-slate-50 p-3"><dt className="text-xs text-slate-500">Total purchases</dt><dd className="text-lg font-bold">{fmtMoney(d.finalizedTotal)}</dd></div>
+            <div className="rounded-lg bg-slate-50 p-3"><dt className="text-xs text-slate-500">Bills</dt><dd className="text-lg font-bold">{d.finalizedCount}{d.voidedCount > 0 && <span className="ml-1 text-xs font-normal text-slate-500">(+{d.voidedCount} voided)</span>}</dd></div>
+          </dl>
+          {d.page.totalElements === 0 ? (
+            <p className="py-4 text-center text-sm text-slate-500">No bills for this customer yet.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {d.page.content.map((b) => (
+                <li key={b.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                  <div className="min-w-0">
+                    <Link to={`/admin/bills?search=${encodeURIComponent(b.billNumber)}`} className="font-medium text-orange-600 hover:underline">{b.billNumber}</Link>
+                    <p className="text-xs text-slate-500">{fmtDateTime(b.createdAt)} · {b.itemCount} items · {b.paymentMethod}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className={`font-semibold ${b.status === 'VOIDED' ? 'text-slate-400 line-through' : ''}`}>{fmtMoney(b.total)}</p>
+                    {b.status === 'VOIDED' ? <Badge color="slate">Voided</Badge> : b.paymentStatus === 'PENDING' && <Badge color="amber">Pending</Badge>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {d.page.totalPages > 1 && (
+            <div className="mt-3 flex justify-between">
+              <button type="button" className="admin-btn-secondary" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Newer</button>
+              <button type="button" className="admin-btn-secondary" disabled={page + 1 >= d.page.totalPages} onClick={() => setPage((p) => p + 1)}>Older</button>
+            </div>
+          )}
+        </>
+      )}
+    </Modal>
+  );
+}
+
 /** /admin/customers – shop contact list. Cashiers can look up; owners and managers can change. */
 export default function CustomersPage() {
   const toast = useToast();
@@ -87,6 +136,7 @@ export default function CustomersPage() {
   const [reload, setReload] = useState(0);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [history, setHistory] = useState(null);
   const [busy, setBusy] = useState(false);
   const list = useAsync(() => adminService.listCustomers(search.trim()), [search, reload]);
 
@@ -108,7 +158,7 @@ export default function CustomersPage() {
     <>
       <AdminPageHeader
         title="Customers"
-        description="Contact details of regular customers, kept for the shop only. (No purchase history: in-store billing is not part of the system.)"
+        description="Contact details of regular customers, kept for the shop only, with their in-store purchase history."
         crumbs={[{ label: 'Customers' }]}
         actions={editable && <button type="button" className="btn-primary" onClick={() => setEditing('new')}><Plus className="size-4" aria-hidden="true" /> Add customer</button>}
       />
@@ -134,17 +184,21 @@ export default function CustomersPage() {
                 {c.notes && <p className="text-xs break-words text-slate-500">{c.notes}</p>}
                 <p className="text-xs text-slate-400">Added {fmtDateTime(c.createdAt)}</p>
               </div>
+              <div className="flex shrink-0 gap-1">
+                <button type="button" className="grid size-10 place-items-center rounded-lg text-slate-500 hover:bg-slate-100" onClick={() => setHistory(c)} aria-label={`Purchases of ${c.fullName}`}><ReceiptText className="size-4" aria-hidden="true" /></button>
               {editable && (
-                <div className="flex shrink-0 gap-1">
+                <>
                   <button type="button" className="grid size-10 place-items-center rounded-lg text-slate-500 hover:bg-slate-100" onClick={() => setEditing(c)} aria-label={`Edit ${c.fullName}`}><Pencil className="size-4" aria-hidden="true" /></button>
                   <button type="button" className="grid size-10 place-items-center rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600" onClick={() => setDeleting(c)} aria-label={`Delete ${c.fullName}`}><Trash2 className="size-4" aria-hidden="true" /></button>
-                </div>
+                </>
               )}
+              </div>
             </li>
           ))}
         </ul>
       )}
       {editing && <CustomerForm customer={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); setReload((n) => n + 1); }} />}
+      {history && <PurchaseHistory customer={history} onClose={() => setHistory(null)} />}
       {deleting && (
         <ConfirmDialog
           title="Delete customer?"

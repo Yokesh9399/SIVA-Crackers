@@ -55,7 +55,11 @@ public class InventoryService {
     @Transactional(readOnly = true)
     public PageResponse<StockRow> stock(AdminProductQuery q) {
         var page = products.findAll(AdminProductSpecifications.matching(q), PageRequest.of(q.page(), q.size(), q.sort().sort()));
-        return PageResponse.of(page, InventoryService::row);
+        var ids = page.getContent().stream().map(Product::getId).toList();
+        java.util.Map<Long, StockMovement> latest = ids.isEmpty() ? java.util.Map.of()
+                : movements.findLatestForProducts(ids).stream()
+                        .collect(java.util.stream.Collectors.toMap(StockMovement::getProductId, m -> m));
+        return PageResponse.of(page, p -> row(p, latest.get(p.getId())));
     }
 
     @Transactional(readOnly = true)
@@ -84,8 +88,8 @@ public class InventoryService {
         Product p = products.findForUpdateById(req.productId())
                 .orElseThrow(() -> new InvalidRequestException("productId", "is not a valid product"));
         MovementReason reason = req.reason();
-        if (reason == MovementReason.PRODUCT_EDIT || reason == MovementReason.INITIAL_STOCK) {
-            throw new InvalidRequestException("reason", "is set automatically by the product form");
+        if (reason.isAutomatic()) {
+            throw new InvalidRequestException("reason", "is set automatically (product form or bills)");
         }
         int qty = req.quantity();
         int previous = p.getStockQuantity();
@@ -142,6 +146,24 @@ public class InventoryService {
                 null, null, null);
     }
 
+    /**
+     * Stock leaving with a bill (negative {@code change}) or coming back when a bill is voided (positive).
+     * The caller has already locked the product row and checked availability.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void recordBill(Product p, int change, Long billId, String note) {
+        MovementReason reason = change < 0 ? MovementReason.BILL_SALE : MovementReason.BILL_VOID;
+        int previous = p.getStockQuantity();
+        int next = previous + change;
+        if (next < 0) {
+            throw new ConflictException("items", "not enough stock of " + p.getName());
+        }
+        p.setStockQuantity(next);
+        products.saveAndFlush(p);
+        movements.saveAndFlush(new StockMovement(p.getId(), p.getName(), p.getSku(), reason, previous, change, null, null, note,
+                CurrentUser.idOrNull(), CurrentUser.nameOrNull(), clock.instant(), billId));
+    }
+
     /** Locks a product row before the product form changes its stock. */
     @Transactional(propagation = Propagation.MANDATORY)
     public void lock(Long productId) {
@@ -178,8 +200,14 @@ public class InventoryService {
     }
 
     static StockRow row(Product p) {
+        return row(p, null);
+    }
+
+    static StockRow row(Product p, StockMovement last) {
         String image = p.getImages().isEmpty() ? null : p.getImages().getFirst().getUrl();
         return new StockRow(p.getId(), p.getName(), p.getSku(), ProductMapper.ref(p.getCategory()), ProductMapper.ref(p.getBrand()),
-                p.getStockQuantity(), p.getReorderLevel(), p.getStockStatus(), p.isActive(), p.isVisibleOnWebsite(), image);
+                p.getStockQuantity(), p.getReorderLevel(), p.getStockStatus(), p.isActive(), p.isVisibleOnWebsite(), image,
+                p.getPrice(), p.getPackSize(), p.getUnit().name(), last == null ? null : last.getCreatedAt(),
+                last == null ? null : last.getPerformedByName());
     }
 }

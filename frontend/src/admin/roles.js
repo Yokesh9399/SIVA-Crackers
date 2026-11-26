@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, Tags, Award, Boxes, History, Truck, Wallet, Contact, BarChart3, Users, ScrollText,
-  PanelsTopLeft, Settings,
+  PanelsTopLeft, Settings, ReceiptIndianRupee, FileText,
 } from 'lucide-react';
 
 // Role table (Phase 0, confirmed for Phase 5/6). The server enforces the same rules on every request;
@@ -14,7 +14,7 @@ export const ROLE_LABELS = { OWNER: 'Owner', MANAGER: 'Manager', CASHIER: 'Cashi
 
 export const ROLE_DESCRIPTIONS = {
   MANAGER: 'Products, categories, brands, stock, suppliers, expenses, customers and reports. No staff, settings or homepage.',
-  CASHIER: 'Views stock and looks up customers. Cannot change anything.',
+  CASHIER: 'Makes in-store bills, views stock and looks up or adds customers. Cannot void bills or change stock.',
 };
 
 /** Sidebar sections, in order, with who may open them. */
@@ -23,16 +23,18 @@ export const ADMIN_SECTIONS = [
   { to: '/admin/products', label: 'Products', icon: Package, roles: RUN_SHOP },
   { to: '/admin/categories', label: 'Categories', icon: Tags, roles: RUN_SHOP },
   { to: '/admin/brands', label: 'Brands', icon: Award, roles: RUN_SHOP },
-  { to: '/admin/inventory', label: 'Stock', icon: Boxes, roles: ALL },
-  { to: '/admin/stock-history', label: 'Stock history', icon: History, roles: ALL },
-  { to: '/admin/suppliers', label: 'Suppliers', icon: Truck, roles: RUN_SHOP },
-  { to: '/admin/expenses', label: 'Expenses', icon: Wallet, roles: RUN_SHOP },
-  { to: '/admin/customers', label: 'Customers', icon: Contact, roles: ALL },
-  { to: '/admin/reports', label: 'Reports', icon: BarChart3, roles: RUN_SHOP },
-  { to: '/admin/staff', label: 'Staff', icon: Users, roles: OWNER },
-  { to: '/admin/activity', label: 'Activity log', icon: ScrollText, roles: OWNER },
-  { to: '/admin/content', label: 'Website Content', icon: PanelsTopLeft, roles: OWNER },
+  { to: '/admin/content', label: 'Homepage Management', icon: PanelsTopLeft, roles: OWNER },
   { to: '/admin/settings', label: 'Business Settings', icon: Settings, roles: OWNER },
+  { to: '/admin/staff', label: 'Staff Management', icon: Users, roles: OWNER },
+  { to: '/admin/inventory', label: 'Inventory', icon: Boxes, roles: ALL },
+  { to: '/admin/stock-history', label: 'Stock Movements', icon: History, roles: ALL },
+  { to: '/admin/suppliers', label: 'Suppliers', icon: Truck, roles: RUN_SHOP },
+  { to: '/admin/billing', label: 'Billing / POS', icon: ReceiptIndianRupee, roles: ALL },
+  { to: '/admin/bills', label: 'Bill History', icon: FileText, roles: ALL },
+  { to: '/admin/customers', label: 'Customers', icon: Contact, roles: ALL },
+  { to: '/admin/expenses', label: 'Expenses', icon: Wallet, roles: RUN_SHOP },
+  { to: '/admin/reports', label: 'Reports', icon: BarChart3, roles: RUN_SHOP },
+  { to: '/admin/activity', label: 'Activity Log', icon: ScrollText, roles: OWNER },
 ];
 
 export const ROLES_FOR = {
@@ -45,12 +47,17 @@ export function sectionsFor(role) {
   return ADMIN_SECTIONS.filter((s) => s.roles.includes(role));
 }
 
-/** Can this role change data in the "run the shop" areas (stock, customers)? */
+/** Can this role void bills? (OWNER and MANAGER – decided 26 Nov 2026) */
+export function canVoid(role) {
+  return RUN_SHOP.includes(role);
+}
+
+/** Can this role change data in the "run the shop" areas (stock, edit/delete customers)? */
 export function canEdit(role) {
   return RUN_SHOP.includes(role);
 }
 
 /** Where each role starts after logging in. */
 export function homeFor(role) {
-  return RUN_SHOP.includes(role) ? '/admin' : '/admin/inventory';
+  return RUN_SHOP.includes(role) ? '/admin' : '/admin/billing';
 }

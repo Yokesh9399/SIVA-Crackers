@@ -175,7 +175,7 @@ describe('Customers', () => {
 });
 
 describe('Reports', () => {
-  it('shows recorded totals, no sales figures, and a CSV link for the chosen period', async () => {
+  it('shows recorded totals, says revenue is from finalized bills and never shows profit, and a CSV link', async () => {
     const summary = {
       from: '2026-10-28', to: '2026-11-26', groupBy: 'DAY',
       rows: [{ period: '2026-11-26', stockInUnits: 8, stockOutUnits: 3, adjustmentUnits: 0, movements: 2, purchaseValue: 0, expenseCount: 1, expenseTotal: 99 }],
@@ -185,7 +185,8 @@ describe('Reports', () => {
     adminService.report.mockImplementation((name) => Promise.resolve(name === 'low-stock' ? lowStock : summary));
     renderAdmin({ '/admin/reports': <ReportsPage /> }, { at: '/admin/reports', auth: MANAGER });
     expect(await screen.findByText('Units received')).toBeInTheDocument();
-    expect(screen.getByText(/no sales, revenue or profit figures/)).toBeInTheDocument();
+    expect(screen.getByText(/Revenue comes only from finalized in-store bills/)).toBeInTheDocument();
+    expect(screen.getByText(/No profit is shown/)).toBeInTheDocument();
     const csv = screen.getByRole('link', { name: 'Download CSV' });
     expect(csv.getAttribute('href')).toMatch(/^\/api\/admin\/reports\/summary\?from=\d{4}-\d{2}-\d{2}&to=\d{4}-\d{2}-\d{2}&groupBy=DAY&format=csv$/);
     await userEvent.click(screen.getByRole('tab', { name: 'Low stock' }));

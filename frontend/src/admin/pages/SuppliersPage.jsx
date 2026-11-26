@@ -177,6 +177,7 @@ export default function SuppliersPage() {
                   <ActiveBadge active={s.active} />
                 </div>
                 <p className="text-sm break-words text-slate-600">{[s.contactPerson, s.phone, s.email].filter(Boolean).join(' · ') || 'No contact details yet'}</p>
+                <p className="text-xs text-slate-400">Added {fmtDateTime(s.createdAt)}</p>
               </div>
               <div className="flex shrink-0 gap-1">
                 <button type="button" className={btn} onClick={() => setViewing(s.id)} aria-label={`View ${s.name}`} title="Details"><Eye className="size-4" aria-hidden="true" /></button>

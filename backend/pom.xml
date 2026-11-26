@@ -81,6 +81,12 @@
         </dependency>
 
         <!-- API documentation (Swagger UI enabled only in the dev profile) -->
+        <!-- PDF invoices for in-store bills (Phase 6). LGPL/MPL, open source -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>2.4.0</version>
+        </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>

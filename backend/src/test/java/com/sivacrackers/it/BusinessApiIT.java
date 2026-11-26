@@ -146,7 +146,10 @@ class BusinessApiIT extends AbstractApiIT {
         mvc.perform(json(post("/api/admin/staff"), "{}", manager)).andExpect(status().isForbidden());
         long pid = product("ROLE-1", 10);
         mvc.perform(json(post("/api/admin/inventory/movements"), movement(pid, "DAMAGED", 1, ""), cashier)).andExpect(status().isForbidden());
-        mvc.perform(json(post("/api/admin/customers"), "{\"fullName\":\"X\",\"phone\":\"9876500099\"}", cashier)).andExpect(status().isForbidden());
+        // Cashiers may add a customer while billing (decided 26 Nov 2026), but not edit or delete one
+        mvc.perform(json(post("/api/admin/customers"), "{\"fullName\":\"Walk In\",\"phone\":\"9876500099\"}", cashier)).andExpect(status().isCreated());
+        long cid = q("SELECT id FROM shop_customers WHERE phone = '9876500099'");
+        mvc.perform(json(put("/api/admin/customers/" + cid), "{\"fullName\":\"Changed\",\"phone\":\"9876500099\"}", cashier)).andExpect(status().isForbidden());
         assertThat(stock(pid)).isEqualTo(10);
     }
 
@@ -351,7 +354,7 @@ class BusinessApiIT extends AbstractApiIT {
     // ================================================================== reports and dashboard
 
     @Test
-    @DisplayName("Reports: daily summary equals the recorded data (Indian date), no revenue/profit, CSV safe for Excel")
+    @DisplayName("Reports: daily summary equals the recorded data (Indian date), no profit figure, CSV safe for Excel")
     void reports() throws Exception {
         long pid = product("REP-1", 0);
         mvc.perform(json(post("/api/admin/inventory/movements"), movement(pid, "PURCHASE", 8, ""), manager)).andExpect(status().isCreated());
@@ -365,7 +368,6 @@ class BusinessApiIT extends AbstractApiIT {
                         .param("groupBy", "DAY").cookie(owner))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.rows[0].period").value(today.toString()))
-                .andExpect(jsonPath("$.totals.revenue").doesNotExist())
                 .andExpect(jsonPath("$.totals.profit").doesNotExist())
                 .andReturn().getResponse().getContentAsString();
         long in = q("SELECT COALESCE(SUM(quantity_change),0) FROM stock_movements WHERE movement_type='STOCK_IN' AND created_at >= ?",
@@ -391,7 +393,7 @@ class BusinessApiIT extends AbstractApiIT {
                 .andExpect(status().isBadRequest());
         mvc.perform(get("/api/admin/reports/summary").param("from", today.toString()).param("to", today.minusDays(1).toString()).cookie(owner))
                 .andExpect(status().isBadRequest());
-        mvc.perform(get("/api/admin/reports/summary").param("format", "pdf").cookie(owner)).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/admin/reports/summary").param("format", "xml").cookie(owner)).andExpect(status().isBadRequest());
     }
 
     @Test

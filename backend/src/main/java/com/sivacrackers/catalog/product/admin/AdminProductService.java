@@ -82,6 +82,7 @@ public class AdminProductService {
         p.setStockQuantity(0);
         Product saved = save(p);
         inventory.recordFormChange(saved, 0, req.stockQuantity(), true);
+        audit.record("PRODUCT_CREATED", "PRODUCT", saved.getId(), saved.getName() + " (" + saved.getSku() + ") ₹" + saved.getPrice().toPlainString());
         return toAdmin(saved);
     }
 
@@ -113,6 +114,8 @@ public class AdminProductService {
         p.setStockQuantity(previousStock);
         Product saved = save(p);
         inventory.recordFormChange(saved, previousStock, req.stockQuantity(), false);
+        audit.record("PRODUCT_UPDATED", "PRODUCT", id, saved.getName() + " (" + saved.getSku() + ") ₹" + saved.getPrice().toPlainString()
+                + (saved.isActive() ? "" : ", inactive") + (saved.isVisibleOnWebsite() ? "" : ", hidden"));
         imageCleanup.deleteIfUnusedAfterCommit(oldImages);
         return toAdmin(saved);
     }
@@ -135,6 +138,11 @@ public class AdminProductService {
         if (req.stockQuantity() != null) {
             inventory.recordFormChange(saved, saved.getStockQuantity(), req.stockQuantity(), false);
         }
+        audit.record("PRODUCT_UPDATED", "PRODUCT", id, saved.getName() + ": quick change "
+                + (req.visibleOnWebsite() != null ? "visible=" + req.visibleOnWebsite() + " " : "")
+                + (req.active() != null ? "active=" + req.active() + " " : "")
+                + (req.featured() != null ? "featured=" + req.featured() + " " : "")
+                + (req.stockQuantity() != null ? "stock=" + req.stockQuantity() : ""));
         return toAdmin(saved);
     }
 

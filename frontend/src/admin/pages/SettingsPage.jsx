@@ -5,6 +5,7 @@ import FormField, { FormMessage } from '../../components/auth/FormField.jsx';
 import ErrorState from '../../components/ui/ErrorState.jsx';
 import PageLoader from '../../components/ui/PageLoader.jsx';
 import { useSettingsEditor } from '../useSettingsEditor.js';
+import PaymentMethodsCard from './PaymentMethodsCard.jsx';
 
 const MOBILE = /^[6-9]\d{9}$/;
 
@@ -87,6 +88,7 @@ export default function SettingsPage() {
           </button>
         </div>
       </form>
+      <PaymentMethodsCard />
     </>
   );
 }

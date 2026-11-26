@@ -58,6 +58,9 @@ public class StockMovement {
     @JoinColumn(name = "supplier_id", updatable = false)
     private Supplier supplier;
 
+    @Column(name = "bill_id", updatable = false)
+    private Long billId;
+
     @Column(name = "unit_cost", precision = 10, scale = 2, updatable = false)
     private BigDecimal unitCost;
 
@@ -80,6 +83,14 @@ public class StockMovement {
     StockMovement(Long productId, String productName, String productSku, MovementReason reason, int previousQuantity,
                   int quantityChange, Supplier supplier, BigDecimal unitCost, String note, Long performedBy,
                   String performedByName, Instant createdAt) {
+        this(productId, productName, productSku, reason, previousQuantity, quantityChange, supplier, unitCost, note,
+                performedBy, performedByName, createdAt, null);
+    }
+
+    StockMovement(Long productId, String productName, String productSku, MovementReason reason, int previousQuantity,
+                  int quantityChange, Supplier supplier, BigDecimal unitCost, String note, Long performedBy,
+                  String performedByName, Instant createdAt, Long billId) {
+        this.billId = billId;
         this.productId = productId;
         this.productName = productName;
         this.productSku = productSku;
@@ -107,6 +118,7 @@ public class StockMovement {
     public int getNewQuantity() { return newQuantity; }
     public Supplier getSupplier() { return supplier; }
     public BigDecimal getUnitCost() { return unitCost; }
+    public Long getBillId() { return billId; }
     public String getNote() { return note; }
     public Long getPerformedBy() { return performedBy; }
     public String getPerformedByName() { return performedByName; }

@@ -3,7 +3,7 @@ import { screen, within } from '@testing-library/react';
 import { Route } from 'react-router-dom';
 import RequireRole from '../RequireRole.jsx';
 import AdminLayout from '../AdminLayout.jsx';
-import { ROLES_FOR, homeFor, sectionsFor } from '../roles.js';
+import { ROLES_FOR, canVoid, homeFor, sectionsFor } from '../roles.js';
 import { renderAdmin } from '../../test/renderAdmin.jsx';
 
 const user = (role) => ({ user: { id: 9, fullName: 'Ravi Kumar', email: 'r@example.test', role } });
@@ -11,22 +11,29 @@ const user = (role) => ({ user: { id: 9, fullName: 'Ravi Kumar', email: 'r@examp
 describe('Role table in the admin', () => {
   it('menu sections follow the role table', () => {
     const labels = (role) => sectionsFor(role).map((s) => s.label);
-    expect(labels('OWNER')).toEqual(expect.arrayContaining(['Dashboard', 'Products', 'Stock', 'Staff', 'Activity log', 'Business Settings', 'Website Content']));
-    expect(labels('MANAGER')).toEqual(expect.arrayContaining(['Dashboard', 'Products', 'Stock', 'Suppliers', 'Expenses', 'Reports', 'Customers']));
-    expect(labels('MANAGER')).not.toEqual(expect.arrayContaining(['Staff']));
+    // The owner sees every section, in the order the shop asked for
+    expect(labels('OWNER')).toEqual([
+      'Dashboard', 'Products', 'Categories', 'Brands', 'Homepage Management', 'Business Settings', 'Staff Management',
+      'Inventory', 'Stock Movements', 'Suppliers', 'Billing / POS', 'Bill History', 'Customers', 'Expenses', 'Reports', 'Activity Log',
+    ]);
+    expect(labels('MANAGER')).toEqual(expect.arrayContaining(['Dashboard', 'Products', 'Inventory', 'Suppliers', 'Billing / POS', 'Expenses', 'Reports', 'Customers']));
+    expect(labels('MANAGER')).not.toContain('Staff Management');
     expect(labels('MANAGER')).not.toContain('Business Settings');
-    expect(labels('MANAGER')).not.toContain('Website Content');
-    expect(labels('CASHIER')).toEqual(['Stock', 'Stock history', 'Customers']);
-    expect(homeFor('CASHIER')).toBe('/admin/inventory');
+    expect(labels('MANAGER')).not.toContain('Homepage Management');
+    expect(labels('CASHIER')).toEqual(['Inventory', 'Stock Movements', 'Billing / POS', 'Bill History', 'Customers']);
+    expect(homeFor('CASHIER')).toBe('/admin/billing');
+    expect(canVoid('OWNER')).toBe(true);
+    expect(canVoid('MANAGER')).toBe(true);
+    expect(canVoid('CASHIER')).toBe(false);
     expect(homeFor('MANAGER')).toBe('/admin');
   });
 
   it('the sidebar shows only the allowed sections and the role name', () => {
     renderAdmin({ '/admin': <AdminLayout /> }, { at: '/admin', auth: user('CASHIER') });
     const nav = screen.getByRole('complementary', { name: 'Admin navigation' });
-    expect(within(nav).getByRole('link', { name: 'Stock' })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: 'Billing / POS' })).toBeInTheDocument();
     expect(within(nav).queryByRole('link', { name: 'Products' })).not.toBeInTheDocument();
-    expect(within(nav).queryByRole('link', { name: 'Staff' })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole('link', { name: 'Staff Management' })).not.toBeInTheDocument();
     expect(screen.getByText('Cashier')).toBeInTheDocument();
   });
 
@@ -37,7 +44,7 @@ describe('Role table in the admin', () => {
     };
     const { unmount } = renderAdmin(routes, { at: '/admin/products', auth: user('CASHIER') });
     expect(screen.getByRole('heading', { name: 'This page is not available for your role' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Go to my start page' })).toHaveAttribute('href', '/admin/inventory');
+    expect(screen.getByRole('link', { name: 'Go to my start page' })).toHaveAttribute('href', '/admin/billing');
     unmount();
     const { unmount: u2 } = renderAdmin(routes, { at: '/admin/staff', auth: user('MANAGER') });
     expect(screen.getByRole('heading', { name: 'This page is not available for your role' })).toBeInTheDocument();

@@ -54,7 +54,7 @@ public final class ExpenseDtos {
                              String reference, String notes, Expense.Status status, String cancelReason, Instant cancelledAt,
                              String recordedByName, Instant createdAt, Instant updatedAt) {
 
-        static ExpenseDto of(Expense e) {
+        public static ExpenseDto of(Expense e) {
             return new ExpenseDto(e.getId(), new RefDto(e.getCategory().getId(), e.getCategory().getName(), null), e.getExpenseDate(),
                     e.getAmount(), e.getDescription(), e.getPaidTo(), e.getReference(), e.getNotes(), e.getStatus(),
                     e.getCancelReason(), e.getCancelledAt(), e.getRecordedByName(), e.getCreatedAt(), e.getUpdatedAt());

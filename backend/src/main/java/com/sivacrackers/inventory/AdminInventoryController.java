@@ -70,7 +70,7 @@ public class AdminInventoryController {
     @GetMapping("/reasons")
     public List<ReasonDto> reasons() {
         return Arrays.stream(MovementReason.values())
-                .filter(r -> r != MovementReason.PRODUCT_EDIT && r != MovementReason.INITIAL_STOCK)
+                .filter(r -> !r.isAutomatic())
                 .map(r -> new ReasonDto(r, r.type(), r.label())).toList();
     }
 

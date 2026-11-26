@@ -98,6 +98,17 @@ export const adminService = {
   updateCustomer: (id, body) => call(() => apiClient.put(`/admin/customers/${id}`, body)),
   deleteCustomer: (id) => call(() => apiClient.delete(`/admin/customers/${id}`)),
 
+  // ----- in-store billing (staff only)
+  paymentMethods: () => call(() => apiClient.get('/admin/payment-methods')),
+  createPaymentMethod: (body) => call(() => apiClient.post('/admin/payment-methods', body)),
+  updatePaymentMethod: (id, body) => call(() => apiClient.put(`/admin/payment-methods/${id}`, body)),
+  listBills: (filters) => call(() => apiClient.get('/admin/bills', { params: params(filters) })),
+  getBill: (id) => call(() => apiClient.get(`/admin/bills/${id}`)),
+  createBill: (body) => call(() => apiClient.post('/admin/bills', body)),
+  voidBill: (id, reason) => call(() => apiClient.post(`/admin/bills/${id}/void`, { reason })),
+  markBillPaid: (id, body) => call(() => apiClient.patch(`/admin/bills/${id}/payment`, body)),
+  customerBills: (id, page = 0) => call(() => apiClient.get(`/admin/customers/${id}/bills`, { params: { page } })),
+
   // ----- reports (JSON); CSV files are downloaded with reportCsvUrl()
   report: (name, filters) => call(() => apiClient.get(`/admin/reports/${name}`, { params: params(filters) })),
 
@@ -123,5 +134,16 @@ export function checkImageFile(file) {
 /** Same-origin link to a CSV report download (the browser sends the login cookie). */
 export function reportCsvUrl(name, filters = {}) {
   const q = new URLSearchParams({ ...params(filters), format: 'csv' });
+  return `${API_URL}/admin/reports/${name}?${q}`;
+}
+
+/** Same-origin link to a bill's PDF invoice (opens in the browser's PDF viewer, which can print it). */
+export function invoiceUrl(billId, download = false) {
+  return `${API_URL}/admin/bills/${billId}/invoice.pdf${download ? '?download=true' : ''}`;
+}
+
+/** Same-origin link to a report PDF download. */
+export function reportPdfUrl(name, filters = {}) {
+  const q = new URLSearchParams({ ...params(filters), format: 'pdf' });
   return `${API_URL}/admin/reports/${name}?${q}`;
 }

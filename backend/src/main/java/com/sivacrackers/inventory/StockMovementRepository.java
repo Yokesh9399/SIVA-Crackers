@@ -10,6 +10,14 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
 
     long countBySupplierId(Long supplierId);
 
+    /** The latest movement of each of the given products (for "last updated" in the stock list). */
+    @Query("""
+            select m from StockMovement m where m.id in (
+                select max(m2.id) from StockMovement m2 where m2.productId in :productIds group by m2.productId)""")
+    java.util.List<StockMovement> findLatestForProducts(@Param("productIds") java.util.Collection<Long> productIds);
+
+    java.util.List<StockMovement> findTop5ByOrderByCreatedAtDescIdDesc();
+
     /** Deliveries received from one supplier (stock in), with units and recorded purchase value. */
     @Query("""
             select count(m) as deliveries, coalesce(sum(m.quantityChange), 0) as units,

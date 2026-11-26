@@ -56,6 +56,11 @@ public abstract class AbstractApiIT {
     void removeCatalogue() {
         requireTestDatabase();
         jdbc.update("DELETE FROM stock_movements");
+        jdbc.update("DELETE FROM bill_items");
+        jdbc.update("DELETE FROM bills");
+        jdbc.update("DELETE FROM bill_counters");
+        // keep the 4 payment methods created by migration V5; remove ones added by tests
+        jdbc.update("DELETE FROM payment_methods WHERE code NOT IN ('CASH', 'UPI', 'CARD', 'OTHER')");
         jdbc.update("DELETE FROM products");
         jdbc.update("DELETE FROM suppliers");
         jdbc.update("DELETE FROM brands");

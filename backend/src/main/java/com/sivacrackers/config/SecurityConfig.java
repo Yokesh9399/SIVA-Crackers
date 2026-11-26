@@ -111,6 +111,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/settings").hasRole("OWNER")
                         .requestMatchers(HttpMethod.GET, "/api/admin/inventory", "/api/admin/inventory/**",
                                 "/api/admin/customers", "/api/admin/customers/**").hasAnyRole("OWNER", "MANAGER", "CASHIER")
+                        // In-store billing (approved 26 Nov 2026): every staff role bills; voiding is OWNER/MANAGER;
+                        // cashiers may add a customer while billing; payment methods are managed by the OWNER.
+                        .requestMatchers(HttpMethod.POST, "/api/admin/bills/*/void").hasAnyRole("OWNER", "MANAGER")
+                        .requestMatchers("/api/admin/bills", "/api/admin/bills/**").hasAnyRole("OWNER", "MANAGER", "CASHIER")
+                        .requestMatchers(HttpMethod.GET, "/api/admin/payment-methods").hasAnyRole("OWNER", "MANAGER", "CASHIER")
+                        .requestMatchers("/api/admin/payment-methods", "/api/admin/payment-methods/**").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.POST, "/api/admin/customers").hasAnyRole("OWNER", "MANAGER", "CASHIER")
                         .requestMatchers("/api/admin/**").hasAnyRole("OWNER", "MANAGER")
                         // Everything else under /api needs a logged-in user; anything outside /api is denied
                         .requestMatchers("/api/**").authenticated()

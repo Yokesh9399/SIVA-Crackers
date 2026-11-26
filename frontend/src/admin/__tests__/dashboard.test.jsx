@@ -13,7 +13,11 @@ vi.mock('../adminService.js', async (importOriginal) => {
 const DATA = {
   totalProducts: 48, activeProducts: 46, inactiveProducts: 2, visibleProducts: 44, hiddenProducts: 2, featuredProducts: 8,
   lowStockProducts: 5, outOfStockProducts: 3, demoProducts: 48, totalCategories: 12, activeCategories: 11, totalBrands: 8,
-  activeBrands: 8,
+  activeBrands: 8, totalStaff: 3, activeStaff: 3, totalSuppliers: 2, activeSuppliers: 1, expensesThisMonth: 1200,
+  billsToday: 2, revenueToday: 450.5, billsThisMonth: 9, revenueThisMonth: 5200,
+  recentBills: [{ id: 3, billNumber: 'SC-2026-000003', status: 'VOIDED', customerName: null, total: 99, paymentStatus: 'PAID', createdAt: '2026-11-26T05:00:00Z' }],
+  recentMovements: [{ id: 4, productName: 'Flower Pot', reasonLabel: 'Sold on a bill', performedByName: 'Kavi', quantityChange: -2, createdAt: '2026-11-26T05:00:00Z' }],
+  recentExpenses: [],
   productsByCategory: [
     { categoryId: 1, name: 'Sparklers', slug: 'sparklers', active: true, productCount: 6 },
     { categoryId: 2, name: 'Rockets', slug: 'rockets', active: false, productCount: 0 },
@@ -38,7 +42,14 @@ describe('Dashboard', () => {
     expect(screen.getByText('(inactive)')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Golden Peacock' })).toHaveAttribute('href', '/admin/products/7');
     expect(screen.getByText(/48 products are/)).toBeInTheDocument(); // demo-data notice
-    expect(screen.queryByText(/revenue|sales|orders/i)).not.toBeInTheDocument();
+    // Sales come from in-store bills only; no profit and no online orders are ever shown
+    expect(within(figures).getByText('Sales today (2 bills)').previousSibling).toHaveTextContent('₹450.50');
+    expect(within(figures).getByText('Suppliers (1 active)').previousSibling).toHaveTextContent('2');
+    expect(screen.getByText('SC-2026-000003')).toBeInTheDocument();
+    expect(screen.getByText('Voided')).toBeInTheDocument();
+    expect(screen.getByText('−2')).toBeInTheDocument();
+    expect(screen.getByText('No expenses yet.')).toBeInTheDocument();
+    expect(screen.queryByText(/profit|orders?\b/i)).not.toBeInTheDocument();
   });
 
   it('shows skeletons while loading', () => {

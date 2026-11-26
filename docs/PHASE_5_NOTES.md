@@ -1,9 +1,17 @@
 # Phase 5 – Admin dashboard: notes
 
-**Status:** first part committed and pushed as `95f99fe`. Second part (26 Nov 2026, **not committed yet**): staff management, the Phase 0 role table and dashboard additions – see "Phase 5 completion" below. Still **not verified**: clicking through the logged-in admin in a real browser.
+**Status:** first part `95f99fe`; staff management and the role table `5208911` (pushed). Final part (26 Nov 2026, **not committed yet**): sidebar order, cashier billing access, dashboard sales/suppliers/recent activity – see "Phase 5 final" below. Still **NOT VERIFIED**: clicking through the logged-in admin in a real browser.
 Reference: [PHASE_5_IMPLEMENTATION.md](PHASE_5_IMPLEMENTATION.md).
 
-## Phase 5 completion (26 Nov 2026)
+## Phase 5 final (26 Nov 2026)
+
+- **Owner bootstrap verified** on the test database: with no OWNER, the backend created one from `BOOTSTRAP_OWNER_*` (log line "OWNER account created…"); the throwaway account was deleted afterwards.
+- **Sidebar order** (only allowed sections shown): Dashboard, Products, Categories, Brands, Homepage Management, Business Settings, Staff Management, Inventory, Stock Movements, Suppliers, Billing / POS, Bill History, Customers, Expenses, Reports, Activity Log.
+- **Cashier**: now also Billing / POS, Bill History and adding customers; starts on Billing / POS. Void is OWNER/MANAGER only.
+- **Dashboard**: sales today and this month (finalized in-store bills only, no profit), total and active suppliers, recent bills, recent stock changes, recent expenses; stock value is **not** shown (no reliable cost for every product).
+- Tests: backend 185/185, frontend 57/57 (`roles.test.jsx` checks the exact sidebar order, cashier menu and start page, `canVoid`).
+
+## Phase 5 completion (26 Nov 2026, committed in `5208911`)
 
 - **Role decision:** the Phase 0 role table replaces the owner-only rule (your answer on 26 Nov 2026). OWNER: everything. MANAGER: dashboard, products, categories, brands, uploads, stock, suppliers, expenses, shop customers, reports; reads business settings. CASHIER: views stock and stock history, looks up customers. Only the OWNER: staff, activity log, homepage slides, changing settings.
 - **Enforced on the server twice:** URL rules in `SecurityConfig` (checked before the request body is read – so unauthorised users get 403, never validation details) and `@PreAuthorize` on every controller.

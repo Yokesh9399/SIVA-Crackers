@@ -1,16 +1,18 @@
-import { useState } from 'react';
-import { Download, Printer, Info } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Download, FileText, Printer, Info, Search } from 'lucide-react';
 import AdminPageHeader from '../components/AdminPageHeader.jsx';
 import DateRange from '../components/DateRange.jsx';
 import { StockBadge } from '../components/Badges.jsx';
 import ErrorState from '../../components/ui/ErrorState.jsx';
 import Skeleton from '../../components/ui/Skeleton.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
-import { adminService, reportCsvUrl } from '../adminService.js';
+import { adminService, reportCsvUrl, reportPdfUrl } from '../adminService.js';
 import { daysAgoIst, fmtChange, fmtDateTime, fmtMoney, todayIst } from '../format.js';
 
 const TABS = [
   ['summary', 'Summary'],
+  ['billing', 'Billing'],
+  ['product-sales', 'Product sales'],
   ['stock-movements', 'Stock movements'],
   ['low-stock', 'Low stock'],
   ['suppliers', 'Suppliers'],
@@ -53,7 +55,9 @@ function Summary({ range, groupBy }) {
   const t = r.data.totals;
   return (
     <>
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Card label={`Revenue (${t.bills} finalized bills)`} value={fmtMoney(t.revenue)} />
+        <Card label="Discounts given" value={fmtMoney(t.discounts)} />
         <Card label="Units received" value={t.stockInUnits} />
         <Card label="Units out" value={t.stockOutUnits} />
         <Card label="Adjustments (net units)" value={fmtChange(t.adjustmentUnits || 0).replace('−0', '0')} />
@@ -61,13 +65,51 @@ function Summary({ range, groupBy }) {
         <Card label={`Expenses (${t.expenseCount})`} value={fmtMoney(t.expenseTotal)} />
       </div>
       <Table
-        head={['Period', 'In', 'Out', 'Adjust', 'Changes', 'Purchases', 'Expenses']}
+        head={['Period', 'Bills', 'Revenue', 'In', 'Out', 'Adjust', 'Purchases', 'Expenses']}
         rows={[...r.data.rows, ...(r.data.rows.length ? [{ ...t, total: true }] : [])].map((x) => ({
           total: x.total,
-          cells: [x.period, x.stockInUnits, x.stockOutUnits, x.adjustmentUnits, x.movements, fmtMoney(x.purchaseValue), fmtMoney(x.expenseTotal)],
+          cells: [x.period, x.bills, fmtMoney(x.revenue), x.stockInUnits, x.stockOutUnits, x.adjustmentUnits, fmtMoney(x.purchaseValue), fmtMoney(x.expenseTotal)],
         }))}
       />
     </>
+  );
+}
+
+function Billing({ range }) {
+  const r = useAsync(() => adminService.report('billing', range), [range]);
+  if (r.error) return <ErrorState message={r.error.message} onRetry={r.retry} />;
+  if (!r.data) return <Skeleton className="h-48" />;
+  const d = r.data;
+  return (
+    <>
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Card label={`Revenue (${d.finalizedBills} finalized bills)`} value={fmtMoney(d.revenue)} />
+        <Card label="Discounts given" value={fmtMoney(d.discounts)} />
+        <Card label={`Payment pending (${d.pendingBills} bills)`} value={fmtMoney(d.pendingTotal)} />
+        <Card label={`Voided (${d.voidedBills} bills, not counted)`} value={fmtMoney(d.voidedTotal)} />
+      </div>
+      <Table
+        head={['Payment method', 'Bills', 'Total']}
+        rows={[
+          ...d.byPaymentMethod.map((m) => ({ cells: [m.label, m.bills, fmtMoney(m.total)] })),
+          ...(d.byPaymentMethod.length ? [{ total: true, cells: ['Total', d.finalizedBills, fmtMoney(d.revenue)] }] : []),
+        ]}
+        empty="No finalized bills in this period."
+      />
+    </>
+  );
+}
+
+function ProductSales({ range, search, sort }) {
+  const r = useAsync(() => adminService.report('product-sales', { ...range, search, sort }), [range, search, sort]);
+  if (r.error) return <ErrorState message={r.error.message} onRetry={r.retry} />;
+  if (!r.data) return <Skeleton className="h-48" />;
+  return (
+    <Table
+      head={['Product', 'Bills', 'Units sold', 'Revenue']}
+      rows={r.data.map((p) => ({ cells: [`${p.productName} (${p.productSku ?? '—'})`, p.bills, p.unitsSold, fmtMoney(p.revenue)] }))}
+      empty="No products sold in this period."
+    />
   );
 }
 
@@ -136,25 +178,36 @@ export default function ReportsPage() {
   const [tab, setTab] = useState('summary');
   const [range, setRange] = useState({ from: daysAgoIst(29), to: todayIst() });
   const [groupBy, setGroupBy] = useState('DAY');
+  const [salesSearchText, setSalesSearchText] = useState('');
+  const [salesSearch, setSalesSearch] = useState('');
+  const [salesSort, setSalesSort] = useState('revenue');
+  useEffect(() => {
+    const t = setTimeout(() => setSalesSearch(salesSearchText.trim()), 350);
+    return () => clearTimeout(t);
+  }, [salesSearchText]);
   const usesDates = tab !== 'low-stock';
-  const csvParams = tab === 'summary' ? { ...range, groupBy } : usesDates ? range : {};
+  const exportParams =
+    tab === 'summary' ? { ...range, groupBy }
+      : tab === 'product-sales' ? { ...range, search: salesSearch, sort: salesSort }
+        : usesDates ? range : {};
 
   return (
     <>
       <AdminPageHeader
         title="Reports"
-        description="Summaries of stock, suppliers and expenses for any period (Indian dates)."
+        description="Sales from in-store bills, stock, suppliers and expenses for any period (Indian dates)."
         crumbs={[{ label: 'Reports' }]}
         actions={
           <>
-            <button type="button" className="admin-btn-secondary print:hidden" onClick={() => window.print()}><Printer className="size-4" aria-hidden="true" /> Print / PDF</button>
-            <a className="btn-primary print:hidden" href={reportCsvUrl(tab, csvParams)} download><Download className="size-4" aria-hidden="true" /> Download CSV</a>
+            <button type="button" className="admin-btn-secondary print:hidden" onClick={() => window.print()}><Printer className="size-4" aria-hidden="true" /> Print</button>
+            <a className="admin-btn-secondary print:hidden" href={reportPdfUrl(tab, exportParams)} download><FileText className="size-4" aria-hidden="true" /> Download PDF</a>
+            <a className="btn-primary print:hidden" href={reportCsvUrl(tab, exportParams)} download><Download className="size-4" aria-hidden="true" /> Download CSV</a>
           </>
         }
       />
       <p className="mb-4 flex gap-2 rounded-xl bg-amber-50 p-3 text-xs text-amber-900 ring-1 ring-amber-200 print:hidden">
         <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        There are no sales, revenue or profit figures: nothing is sold online and in-store billing is not part of the system. “Purchase value” is only the cost staff entered when receiving stock.
+        Revenue comes only from finalized in-store bills (voided bills are excluded). Expenses are shown separately. No profit is shown: product costs are not recorded for every sale, so a profit figure would be a guess. “Purchase value” is only the cost staff entered when receiving stock.
       </p>
       <div role="tablist" aria-label="Report" className="no-scrollbar mb-4 flex gap-1 overflow-x-auto print:hidden">
         {TABS.map(([id, label]) => (
@@ -167,6 +220,20 @@ export default function ReportsPage() {
       {usesDates && (
         <section aria-label="Period" className="admin-card mb-4 grid grid-cols-1 gap-3 p-4 md:grid-cols-3 print:hidden">
           <div className="md:col-span-2"><DateRange from={range.from} to={range.to} onChange={(r) => r.from && r.to && setRange(r)} idPrefix="report" /></div>
+          {tab === 'product-sales' && (
+            <div className="grid grid-cols-2 gap-2 md:col-span-3 lg:col-span-1">
+              <label className="relative block text-xs font-medium text-slate-600">Product
+                <Search className="pointer-events-none absolute bottom-3 left-3 size-4 text-slate-400" aria-hidden="true" />
+                <input type="search" className="admin-input mt-1 pl-9" placeholder="Name or code…" value={salesSearchText} maxLength={100} onChange={(e) => setSalesSearchText(e.target.value)} />
+              </label>
+              <label className="block text-xs font-medium text-slate-600">Sort by
+                <select className="admin-input mt-1" value={salesSort} onChange={(e) => setSalesSort(e.target.value)}>
+                  <option value="revenue">Revenue</option>
+                  <option value="units">Units sold</option>
+                </select>
+              </label>
+            </div>
+          )}
           {tab === 'summary' && (
             <label className="block text-xs font-medium text-slate-600">Group by
               <select className="admin-input mt-1" value={groupBy} onChange={(e) => setGroupBy(e.target.value)}>
@@ -181,6 +248,8 @@ export default function ReportsPage() {
       <p className="mb-3 hidden text-sm print:block">{TABS.find(([id]) => id === tab)[1]} report{usesDates ? ` · ${range.from} to ${range.to}` : ''}</p>
       <div role="tabpanel">
         {tab === 'summary' && <Summary range={range} groupBy={groupBy} />}
+        {tab === 'billing' && <Billing range={range} />}
+        {tab === 'product-sales' && <ProductSales range={range} search={salesSearch} sort={salesSort} />}
         {tab === 'stock-movements' && <Movements range={range} />}
         {tab === 'low-stock' && <LowStock />}
         {tab === 'suppliers' && <Suppliers range={range} />}

@@ -14,6 +14,7 @@ import Skeleton from '../../components/ui/Skeleton.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { useAuth } from '../../hooks/useAuth.js';
 import { useToast } from '../hooks/useToast.js';
+import { fmtDateTime, fmtMoney } from '../format.js';
 import { adminService } from '../adminService.js';
 import { canEdit } from '../roles.js';
 import { formErrorMessage, serverFieldErrors } from '../../utils/authValidation.js';
@@ -312,7 +313,10 @@ export default function InventoryPage() {
                 <AdminImage src={r.imageUrl} alt="" className="size-12 shrink-0 rounded-lg" />
                 <div className="min-w-0 flex-1 basis-48">
                   <p className="font-medium break-words">{r.name}</p>
-                  <p className="text-xs text-slate-500">Code {r.sku} · {r.category.name} {!r.active && <Badge color="slate">Inactive</Badge>}</p>
+                  <p className="text-xs text-slate-500">Code {r.sku} · {r.category.name} · {fmtMoney(r.price)} {!r.active && <Badge color="slate">Inactive</Badge>}</p>
+                  <p className="text-xs text-slate-400">
+                    {r.lastMovementAt ? <>Last updated {fmtDateTime(r.lastMovementAt)} by {r.lastMovementBy ?? '—'}</> : 'No stock changes recorded yet'}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">

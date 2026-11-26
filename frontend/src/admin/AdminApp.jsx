@@ -25,8 +25,10 @@ const SuppliersPage = lazy(() => import('./pages/SuppliersPage.jsx'));
 const ExpensesPage = lazy(() => import('./pages/ExpensesPage.jsx'));
 const CustomersPage = lazy(() => import('./pages/CustomersPage.jsx'));
 const ReportsPage = lazy(() => import('./pages/ReportsPage.jsx'));
+const BillingPage = lazy(() => import('./pages/BillingPage.jsx'));
+const BillsPage = lazy(() => import('./pages/BillsPage.jsx'));
 
-/** /admin: the dashboard for owners and managers; cashiers start on the Stock page. */
+/** /admin: the dashboard for owners and managers; cashiers start on Billing / POS. */
 function AdminHome() {
   const { user } = useAuth();
   return homeFor(user?.role) === '/admin' ? <DashboardPage /> : <Navigate to={homeFor(user?.role)} replace />;
@@ -63,7 +65,9 @@ export default function AdminApp() {
           <Route element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
               <Route index element={<AdminHome />} />
-              {/* Everyone on the staff: view stock and look up customers */}
+              {/* Everyone on the staff: in-store billing, view stock, look up and add customers */}
+              <Route path="billing" element={<BillingPage />} />
+              <Route path="bills" element={<BillsPage />} />
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="stock-history" element={<StockHistoryPage />} />
               <Route path="customers" element={<CustomersPage />} />

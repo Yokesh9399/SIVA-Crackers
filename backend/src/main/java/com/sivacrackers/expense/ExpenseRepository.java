@@ -14,6 +14,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long>, JpaSpec
     @EntityGraph(attributePaths = "category")
     Optional<Expense> findWithCategoryById(Long id);
 
+    @EntityGraph(attributePaths = "category")
+    java.util.List<Expense> findTop5ByOrderByCreatedAtDescIdDesc();
+
     /** Total of ACTIVE expenses dated within [from, to] (both inclusive). */
     @Query("""
             select coalesce(sum(e.amount), 0) from Expense e

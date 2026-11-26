@@ -55,7 +55,7 @@ Screenshots: [`docs/screenshots/phase3/`](docs/screenshots/phase3/)
 **Testing:** 132/132 backend tests (49 unit/web + 83 against a MySQL test database); browser regression 899/899 desktop checks and phone checks at 375 px and 320 px; secrets and no-online-selling scans clean. See [Phase 4 notes](docs/PHASE_4_NOTES.md) and the [implementation reference](docs/PHASE_4_IMPLEMENTATION.md).
 
 ### Phase 5 – Admin dashboard
-- Owner-only admin at **`/admin`**: live dashboard figures (no sales or order figures), products (search, filters, sort, paging, add, edit, delete with confirmation, quick show/hide), categories and brands (product counts; deleting is blocked while products use them), homepage slides and text, business settings
+- Staff admin at **`/admin`** (owner, manager, cashier – each sees only their sections): live dashboard (catalogue, stock, suppliers, expenses, in-store sales, recent bills / stock changes / expenses), products (search, filters, sort, paging, add, edit, delete with confirmation, quick show/hide), categories and brands (product counts; deleting is blocked while products use them), homepage slides and text, business settings
 - **Image uploads** for product photos, brand logos and category pictures – checked on the server by content, location/camera metadata removed – shown on the public website automatically
 - Every admin action is authorised again by the server (OWNER role + CSRF); the admin is switched off in mock mode
 
@@ -65,9 +65,10 @@ Screenshots: [`docs/screenshots/phase3/`](docs/screenshots/phase3/)
 - **Stock**: current stock, record stock in / out / counted adjustments with reason, supplier and cost, full **stock history** (before → after, who, when), low-stock and out-of-stock alerts, per-product low-stock level; stock can never go negative and simultaneous changes are safe
 - **Suppliers** with purchase history, **expenses** (cancel with reason, never deleted, monthly summary), **shop customer contacts**, **reports** (daily / monthly / yearly summary, stock, low stock, suppliers, expenses) with **CSV export**
 - **Staff management** and an **activity log** (Phase 5 completion); roles follow the Phase 0 table: owner, manager, cashier
-- Not built (awaiting your decision): in-store billing, billing invoices, sales figures. Nothing is sold online
+- **In-store billing / POS** (approved 26 Nov 2026, admin only): bills for customers buying at the shop counter, stock deducted exactly once, bill-level discount up to 20%, cash / UPI / card at the shop (no online payment), pending payments, void with reason (owner/manager), bill history, **PDF invoices** (no invented GST or licence), customer purchase history
+- Reports add **billing** and **product sales**, with **CSV and PDF** export; revenue counts finalized bills only; no profit is shown (no reliable cost per sale). Nothing is sold online
 
-**Testing:** 175/175 backend tests (117 on MySQL), 47/47 frontend component tests. See [Phase 6 notes](docs/PHASE_6_NOTES.md) and the [API reference](docs/API.md).
+**Testing:** 185/185 backend tests (127 on MySQL), 57/57 frontend component tests. The logged-in admin was **not** checked in a browser. See [Phase 6 notes](docs/PHASE_6_NOTES.md) and the [API reference](docs/API.md).
 
 > **Before going live:** legal pages are drafts that need review by the owner and a legal adviser, and the safety/first-aid content and emergency numbers should be checked against official sources (listed in the Phase 3 notes).
 

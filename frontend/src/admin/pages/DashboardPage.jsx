@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Package, Eye, EyeOff, Archive, Star, AlertTriangle, PackageX, Tags, Award, Plus, PanelsTopLeft, FlaskConical, Users, Truck, Wallet, ArrowDownUp } from 'lucide-react';
-import { fmtMoney } from '../format.js';
+import { Package, Eye, EyeOff, Archive, Star, AlertTriangle, PackageX, Tags, Award, Plus, PanelsTopLeft, FlaskConical, Users, Truck, Wallet, ArrowDownUp, ReceiptIndianRupee, CalendarDays } from 'lucide-react';
+import { fmtChange, fmtDate, fmtDateTime, fmtMoney } from '../format.js';
 import { useAuth } from '../../hooks/useAuth.js';
 import AdminPageHeader from '../components/AdminPageHeader.jsx';
 import { AdminImage } from '../components/ImageUploader.jsx';
-import { StockBadge, VisibilityBadge, DemoBadge } from '../components/Badges.jsx';
+import { Badge, StockBadge, VisibilityBadge, DemoBadge } from '../components/Badges.jsx';
 import ErrorState from '../../components/ui/ErrorState.jsx';
 import Skeleton from '../../components/ui/Skeleton.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
@@ -33,7 +33,26 @@ function StatCard({ icon: Icon, label, value, to, tone = 'text-navy-900' }) {
   );
 }
 
-/** /admin – live catalogue figures (no sales or order figures: nothing is sold online). */
+/** A small "latest five" list card. */
+function RecentList({ title, to, linkLabel, items, empty, render }) {
+  return (
+    <section className="admin-card p-5" aria-label={title}>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-lg font-bold">{title}</h2>
+        <Link to={to} className="text-sm font-medium text-orange-600 hover:underline">{linkLabel}</Link>
+      </div>
+      {items == null ? (
+        <Skeleton className="mt-4 h-32" />
+      ) : items.length === 0 ? (
+        <p className="mt-4 text-sm text-slate-500">{empty}</p>
+      ) : (
+        <ul className="mt-3 divide-y divide-slate-100 text-sm">{items.map(render)}</ul>
+      )}
+    </section>
+  );
+}
+
+/** /admin – live figures. Sales come only from finalized in-store bills; no profit is shown (no reliable cost per sale). */
 export default function DashboardPage() {
   const { user } = useAuth();
   const { data: d, loading, error, retry } = useAsync(() => adminService.dashboard(), []);
@@ -57,7 +76,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <AdminPageHeader title="Dashboard" description="An overview of your catalogue, counted live from the database." actions={actions} />
+      <AdminPageHeader title="Dashboard" description="An overview of the shop, counted live from the database. Sales are in-store bills only (nothing is sold online)." actions={actions} />
 
       {d?.demoProducts > 0 && (
         <p className="mb-6 flex gap-2 rounded-xl bg-violet-50 p-3 text-sm text-violet-900 ring-1 ring-violet-200">
@@ -71,9 +90,11 @@ export default function DashboardPage() {
 
       <section aria-label="Catalogue figures" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
         {loading || !d ? (
-          Array.from({ length: 12 }, (_, i) => <Skeleton key={i} className="h-[4.5rem]" />)
+          Array.from({ length: 16 }, (_, i) => <Skeleton key={i} className="h-[4.5rem]" />)
         ) : (
           <>
+            <StatCard icon={ReceiptIndianRupee} label={`Sales today (${d.billsToday} bills)`} value={fmtMoney(d.revenueToday)} to="/admin/bills" />
+            <StatCard icon={CalendarDays} label={`Sales this month (${d.billsThisMonth} bills)`} value={fmtMoney(d.revenueThisMonth)} to="/admin/reports" />
             <StatCard icon={Package} label="Total products" value={d.totalProducts} to="/admin/products" />
             <StatCard icon={Eye} label="Active products" value={d.activeProducts} to="/admin/products?visibility=VISIBLE" />
             <StatCard icon={Archive} label="Inactive products" value={d.inactiveProducts} to="/admin/products?visibility=INACTIVE" />
@@ -84,7 +105,7 @@ export default function DashboardPage() {
             <StatCard icon={Tags} label={`Categories (${d.activeCategories} active)`} value={d.totalCategories} to="/admin/categories" />
             <StatCard icon={Award} label={`Brands (${d.activeBrands} active)`} value={d.totalBrands} to="/admin/brands" />
             <StatCard icon={Users} label={`Staff (${d.activeStaff} active)`} value={d.totalStaff} to={user?.role === 'OWNER' ? '/admin/staff' : undefined} />
-            <StatCard icon={Truck} label="Active suppliers" value={d.activeSuppliers} to="/admin/suppliers" />
+            <StatCard icon={Truck} label={`Suppliers (${d.activeSuppliers} active)`} value={d.totalSuppliers} to="/admin/suppliers" />
             <StatCard icon={Wallet} label="Expenses this month" value={fmtMoney(d.expensesThisMonth)} to="/admin/expenses" />
           </>
         )}
@@ -163,12 +184,55 @@ export default function DashboardPage() {
         </section>
       </div>
 
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <RecentList
+          title="Recent bills" to="/admin/bills" linkLabel="All bills" items={d?.recentBills} empty="No bills yet."
+          render={(b) => (
+            <li key={b.id} className="flex items-center justify-between gap-2 py-2">
+              <span className="min-w-0">
+                <span className="block font-medium">{b.billNumber}</span>
+                <span className="block truncate text-xs text-slate-500">{fmtDateTime(b.createdAt)} · {b.customerName ?? 'Walk-in'}</span>
+              </span>
+              <span className="shrink-0 text-right">
+                <span className={`block font-semibold ${b.status === 'VOIDED' ? 'text-slate-400 line-through' : ''}`}>{fmtMoney(b.total)}</span>
+                {b.status === 'VOIDED' ? <Badge color="red">Voided</Badge> : b.paymentStatus === 'PENDING' && <Badge color="amber">Pending</Badge>}
+              </span>
+            </li>
+          )}
+        />
+        <RecentList
+          title="Recent stock changes" to="/admin/stock-history" linkLabel="Stock movements" items={d?.recentMovements} empty="No stock changes yet."
+          render={(m) => (
+            <li key={m.id} className="flex items-center justify-between gap-2 py-2">
+              <span className="min-w-0">
+                <span className="block truncate font-medium">{m.productName}</span>
+                <span className="block truncate text-xs text-slate-500">{m.reasonLabel} · {m.performedByName ?? '—'} · {fmtDateTime(m.createdAt)}</span>
+              </span>
+              <span className={`shrink-0 font-semibold ${m.quantityChange > 0 ? 'text-emerald-700' : 'text-red-600'}`}>{fmtChange(m.quantityChange)}</span>
+            </li>
+          )}
+        />
+        <RecentList
+          title="Recent expenses" to="/admin/expenses" linkLabel="All expenses" items={d?.recentExpenses} empty="No expenses yet."
+          render={(e) => (
+            <li key={e.id} className="flex items-center justify-between gap-2 py-2">
+              <span className="min-w-0">
+                <span className="block truncate font-medium">{e.description}</span>
+                <span className="block truncate text-xs text-slate-500">{e.category?.name} · {fmtDate(e.expenseDate)}</span>
+              </span>
+              <span className={`shrink-0 font-semibold ${e.status === 'CANCELLED' ? 'text-slate-400 line-through' : ''}`}>{fmtMoney(e.amount)}</span>
+            </li>
+          )}
+        />
+      </div>
+
       <section className="mt-6" aria-labelledby="quick-title">
         <h2 id="quick-title" className="mb-3 text-lg font-bold">
           Quick actions
         </h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
+            { to: '/admin/billing', icon: ReceiptIndianRupee, label: 'New bill' },
             { to: '/admin/products/new', icon: Plus, label: 'Add a product' },
             { to: '/admin/inventory', icon: ArrowDownUp, label: 'Record stock' },
             { to: '/admin/expenses', icon: Wallet, label: 'Record an expense' },

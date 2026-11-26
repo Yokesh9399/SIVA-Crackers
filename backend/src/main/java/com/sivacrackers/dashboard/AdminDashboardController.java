@@ -35,8 +35,12 @@ public class AdminDashboardController {
             long totalProducts, long activeProducts, long inactiveProducts, long visibleProducts, long hiddenProducts,
             long featuredProducts, long lowStockProducts, long outOfStockProducts, long demoProducts,
             long totalCategories, long activeCategories, long totalBrands, long activeBrands,
-            long totalStaff, long activeStaff, long activeSuppliers, java.math.BigDecimal expensesThisMonth,
-            List<CategoryCount> productsByCategory, List<AdminProductRow> recentProducts) {
+            long totalStaff, long activeStaff, long totalSuppliers, long activeSuppliers, java.math.BigDecimal expensesThisMonth,
+            long billsToday, java.math.BigDecimal revenueToday, long billsThisMonth, java.math.BigDecimal revenueThisMonth,
+            List<CategoryCount> productsByCategory, List<AdminProductRow> recentProducts,
+            List<com.sivacrackers.inventory.InventoryDtos.MovementDto> recentMovements,
+            List<com.sivacrackers.expense.ExpenseDtos.ExpenseDto> recentExpenses,
+            List<com.sivacrackers.billing.BillingDtos.BillRow> recentBills) {
     }
 
     private static final java.util.Set<com.sivacrackers.user.Role> STAFF = java.util.EnumSet.of(
@@ -48,16 +52,29 @@ public class AdminDashboardController {
     private final com.sivacrackers.user.UserRepository users;
     private final com.sivacrackers.supplier.SupplierRepository suppliers;
     private final com.sivacrackers.expense.ExpenseService expenses;
+    private final com.sivacrackers.report.ReportService reports;
+    private final com.sivacrackers.inventory.StockMovementRepository movements;
+    private final com.sivacrackers.expense.ExpenseRepository expenseRepo;
+    private final com.sivacrackers.billing.BillRepository bills;
+    private final java.time.Clock clock;
 
     public AdminDashboardController(ProductRepository products, CategoryRepository categories, BrandRepository brands,
                                     com.sivacrackers.user.UserRepository users, com.sivacrackers.supplier.SupplierRepository suppliers,
-                                    com.sivacrackers.expense.ExpenseService expenses) {
+                                    com.sivacrackers.expense.ExpenseService expenses, com.sivacrackers.report.ReportService reports,
+                                    com.sivacrackers.inventory.StockMovementRepository movements,
+                                    com.sivacrackers.expense.ExpenseRepository expenseRepo,
+                                    com.sivacrackers.billing.BillRepository bills, java.time.Clock clock) {
         this.products = products;
         this.categories = categories;
         this.brands = brands;
         this.users = users;
         this.suppliers = suppliers;
         this.expenses = expenses;
+        this.reports = reports;
+        this.movements = movements;
+        this.expenseRepo = expenseRepo;
+        this.bills = bills;
+        this.clock = clock;
     }
 
     @GetMapping
@@ -72,12 +89,20 @@ public class AdminDashboardController {
                 .toList();
         List<AdminProductRow> recent = products.findAll(PageRequest.of(0, 5, ProductSort.NEWEST.sort()))
                 .map(AdminProductService::toRow).getContent();
+        java.time.LocalDate today = com.sivacrackers.common.ShopTime.today(clock);
+        var todaySales = reports.billing(new com.sivacrackers.common.ShopTime.Range(today, today));
+        var monthSales = reports.billing(new com.sivacrackers.common.ShopTime.Range(today.withDayOfMonth(1), today));
         return new Dashboard(
                 products.count(), products.countByActiveTrue(), products.countByActiveFalse(),
                 products.countByActiveTrueAndVisibleOnWebsiteTrue(), products.countByActiveTrueAndVisibleOnWebsiteFalse(),
                 products.countByActiveTrueAndFeaturedTrue(), products.countActiveLowStock(), products.countActiveOutOfStock(),
                 products.countByDemoTrue(), categories.count(), categories.countByActiveTrue(), brands.count(),
                 brands.countByActiveTrue(), users.countByRoleIn(STAFF), users.countByRoleInAndActiveTrue(STAFF),
-                suppliers.countByActiveTrue(), expenses.thisMonthTotal(), byCategory, recent);
+                suppliers.count(), suppliers.countByActiveTrue(), expenses.thisMonthTotal(),
+                todaySales.finalizedBills(), todaySales.revenue(), monthSales.finalizedBills(), monthSales.revenue(),
+                byCategory, recent,
+                movements.findTop5ByOrderByCreatedAtDescIdDesc().stream().map(com.sivacrackers.inventory.InventoryDtos.MovementDto::of).toList(),
+                expenseRepo.findTop5ByOrderByCreatedAtDescIdDesc().stream().map(com.sivacrackers.expense.ExpenseDtos.ExpenseDto::of).toList(),
+                bills.findTop5ByOrderByCreatedAtDescIdDesc().stream().map(com.sivacrackers.billing.BillingService::row).toList());
     }
 }

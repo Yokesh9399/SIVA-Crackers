@@ -31,8 +31,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Shop customer contacts. Look-up: OWNER, MANAGER, CASHIER. Add / edit / delete: OWNER and MANAGER.
- * Contacts only – there is no purchase history because in-store billing is not part of the approved scope.
+ * Shop customer contacts. Look-up and add (e.g. while billing): OWNER, MANAGER, CASHIER. Edit / delete: OWNER and MANAGER.
+ * Purchase history comes from finalized in-store bills (staff only, never public).
  */
 @RestController
 @RequestMapping("/api/admin/customers")
@@ -60,10 +60,25 @@ public class AdminCustomerController {
 
     private final ShopCustomerRepository customers;
     private final AuditService audit;
+    private final com.sivacrackers.billing.BillingService billing;
 
-    public AdminCustomerController(ShopCustomerRepository customers, AuditService audit) {
+    public AdminCustomerController(ShopCustomerRepository customers, AuditService audit,
+                                   com.sivacrackers.billing.BillingService billing) {
         this.customers = customers;
         this.audit = audit;
+        this.billing = billing;
+    }
+
+    /**
+     * In-store purchase history: the customer's bills (newest first) with the total of FINALIZED bills
+     * ({@code finalizedTotal}); voided bills are listed but never counted.
+     */
+    @GetMapping("/{id}/bills")
+    public com.sivacrackers.billing.BillingDtos.BillPage bills(@PathVariable Long id,
+                                                              @RequestParam(required = false) Integer page) {
+        find(id);
+        return billing.list(new com.sivacrackers.billing.BillingService.Filter(null, null, null, null, null, id),
+                Params.page(page), 25);
     }
 
     /** Up to 200 contacts matching {@code ?search=} (name, phone or email). */
@@ -82,7 +97,6 @@ public class AdminCustomerController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'MANAGER')")
     @Transactional
     public ResponseEntity<CustomerDto> create(@Valid @RequestBody CustomerRequest body) {
         ShopCustomer c = new ShopCustomer(body.fullName().trim(), CurrentUser.idOrNull());

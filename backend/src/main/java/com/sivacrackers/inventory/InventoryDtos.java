@@ -39,19 +39,21 @@ public final class InventoryDtos {
     }
 
     public record StockRow(Long productId, String name, String sku, RefDto category, RefDto brand, int stockQuantity,
-                           int reorderLevel, StockStatus stockStatus, boolean active, boolean visibleOnWebsite, String imageUrl) {
+                           int reorderLevel, StockStatus stockStatus, boolean active, boolean visibleOnWebsite, String imageUrl,
+                           BigDecimal price, String packSize, String unit, Instant lastMovementAt, String lastMovementBy) {
     }
 
     public record MovementDto(Long id, Long productId, String productName, String productSku, MovementType type,
                               MovementReason reason, String reasonLabel, int previousQuantity, int quantityChange,
-                              int newQuantity, RefDto supplier, BigDecimal unitCost, String note, String performedByName,
-                              Instant createdAt) {
+                              int newQuantity, RefDto supplier, BigDecimal unitCost, String note, Long performedById,
+                              String performedByName, Long billId, Instant createdAt) {
 
-        static MovementDto of(StockMovement m) {
+        public static MovementDto of(StockMovement m) {
             RefDto supplier = m.getSupplier() == null ? null : new RefDto(m.getSupplier().getId(), m.getSupplier().getName(), null);
             return new MovementDto(m.getId(), m.getProductId(), m.getProductName(), m.getProductSku(), m.getType(),
                     m.getReason(), m.getReason().label(), m.getPreviousQuantity(), m.getQuantityChange(), m.getNewQuantity(),
-                    supplier, m.getUnitCost(), m.getNote(), m.getPerformedByName(), m.getCreatedAt());
+                    supplier, m.getUnitCost(), m.getNote(), m.getPerformedBy(), m.getPerformedByName(), m.getBillId(),
+                    m.getCreatedAt());
         }
     }
 

@@ -1,8 +1,8 @@
 # SIVA Crackers – REST API reference
 
-Every endpoint in this file exists in `backend/src/main/java` (91 endpoints: 89 under `/api`, plus `/uploads/**` and the health check). Base URL in development: `http://localhost:8081` (the website at `http://localhost:5173` forwards `/api` and `/uploads` to it). A Postman collection is in [`docs/postman/`](postman/).
+Every endpoint in this file exists in `backend/src/main/java` (103 endpoints: 101 under `/api`, plus `/uploads/**` and the health check). Base URL in development: `http://localhost:8081` (the website at `http://localhost:5173` forwards `/api` and `/uploads` to it). A Postman collection is in [`docs/postman/`](postman/).
 
-The public website is information-only. There are **no** order, cart, checkout, payment, booking, reservation, sales or invoice endpoints.
+The public website is information-only. There are **no** public order, cart, checkout, online payment, booking or reservation endpoints. In-store billing (section 7a) exists only inside the protected admin: staff record sales made in person at the shop counter. There is no payment gateway, no payment link and no card or UPI details are collected.
 
 ## 1. Conventions
 
@@ -25,7 +25,12 @@ The public website is information-only. There are **no** order, cart, checkout, 
 | Stock: record movements, change low-stock level | ✔ | ✔ | – |
 | Suppliers, expenses, expense categories, reports | ✔ | ✔ | – |
 | Shop customers: view / search | ✔ | ✔ | ✔ |
-| Shop customers: add, edit, delete | ✔ | ✔ | – |
+| Shop customers: add | ✔ | ✔ | ✔ (while billing) |
+| Shop customers: edit, delete | ✔ | ✔ | – |
+| In-store billing: create bills, bill history, invoices, mark a pending bill paid, customer purchase history | ✔ | ✔ | ✔ |
+| In-store billing: void a bill | ✔ | ✔ | – |
+| Payment methods: list | ✔ | ✔ | ✔ |
+| Payment methods: add / change | ✔ | – | – |
 | Business settings: read | ✔ | ✔ | – |
 | Business settings: change; homepage slides; staff; activity log | ✔ | – | – |
 
@@ -78,7 +83,7 @@ The public website is information-only. There are **no** order, cart, checkout, 
 
 | Method | Path | Body / parameters | Success | Errors |
 |---|---|---|---|---|
-| GET | `/api/admin/dashboard` | – | `{totalProducts, activeProducts, inactiveProducts, visibleProducts, hiddenProducts, featuredProducts, lowStockProducts, outOfStockProducts, demoProducts, totalCategories, activeCategories, totalBrands, activeBrands, totalStaff, activeStaff, activeSuppliers, expensesThisMonth, productsByCategory[], recentProducts[]}` – live counts, no sales figures | – |
+| GET | `/api/admin/dashboard` | – | `{totalProducts, activeProducts, inactiveProducts, visibleProducts, hiddenProducts, featuredProducts, lowStockProducts, outOfStockProducts, demoProducts, totalCategories, activeCategories, totalBrands, activeBrands, totalStaff, activeStaff, totalSuppliers, activeSuppliers, expensesThisMonth, billsToday, revenueToday, billsThisMonth, revenueThisMonth, productsByCategory[], recentProducts[], recentMovements[], recentExpenses[], recentBills[]}` – live counts; revenue = finalized in-store bills only (India time); no profit | – |
 | GET | `/api/admin/products` | `search` (name/code), `categoryId`, `brandId`, `availability` = IN_STOCK\|LOW_STOCK\|OUT_OF_STOCK, `visibility` = VISIBLE\|HIDDEN\|INACTIVE, `sort` (as public), `page`, `size` = 10\|25\|50 | Page of rows (any status) | 400 |
 | GET | `/api/admin/products/{id}` | – | Full product incl. stock, flags, images, timestamps | 404 |
 | POST | `/api/admin/products` | `{name*, slug (empty = from name), sku*, categoryId*, brandId*, description, packSize*, unit* BOX\|PACKET\|PIECE\|BUNDLE, mrp*, price*, stockQuantity*, reorderLevel*, featured*, visibleOnWebsite*, active*, images*[{url, alt}] (≤6, uploaded here only)}` | 201. Opening stock recorded as a stock movement | 400 (prices > 0, ≤ 2 decimals, price ≤ MRP, slug format, unknown category/brand, outside image URL), 409 code or slug used |
@@ -96,11 +101,11 @@ The public website is information-only. There are **no** order, cart, checkout, 
 
 | Method | Path | Body / parameters | Success | Errors |
 |---|---|---|---|---|
-| GET | `/api/admin/inventory` | same filters as admin products | Page of `{productId, name, sku, category, brand, stockQuantity, reorderLevel, stockStatus, active, visibleOnWebsite, imageUrl}` | 400 |
+| GET | `/api/admin/inventory` | same filters as admin products | Page of `{productId, name, sku, category, brand, stockQuantity, reorderLevel, stockStatus, active, visibleOnWebsite, imageUrl, price, packSize, unit, lastMovementAt, lastMovementBy}` | 400 |
 | GET | `/api/admin/inventory/alerts` | – | `{lowStockCount, outOfStockCount, lowStock[], outOfStock[]}` (active products) | – |
 | GET | `/api/admin/inventory/reasons` | – | `[{code, type, label}]` usable reasons | – |
 | GET | `/api/admin/inventory/products/{productId}` | – | One stock row | 404 |
-| GET | `/api/admin/inventory/movements` | `from`, `to` (dates, ≤5 years), `type` = STOCK_IN\|STOCK_OUT\|ADJUSTMENT, `reason`, `productId`, `supplierId`, `search`, `page`, `size` = 25\|50\|100 | Page of `{id, productId, productName, productSku, type, reason, reasonLabel, previousQuantity, quantityChange, newQuantity, supplier{id,name}, unitCost, note, performedByName, createdAt}`, newest first | 400 |
+| GET | `/api/admin/inventory/movements` | `from`, `to` (dates, ≤5 years), `type` = STOCK_IN\|STOCK_OUT\|ADJUSTMENT, `reason`, `productId`, `supplierId`, `search`, `page`, `size` = 25\|50\|100 | Page of `{id, productId, productName, productSku, type, reason, reasonLabel, previousQuantity, quantityChange, newQuantity, supplier{id,name}, unitCost, note, performedById, performedByName, billId, createdAt}`, newest first. Reasons `BILL_SALE` / `BILL_VOID` are written only by billing | 400 |
 | POST | `/api/admin/inventory/movements` | `{productId*, reason*, quantity*, supplierId, unitCost, note}` – reasons: in `PURCHASE`, `CUSTOMER_RETURN`, `OTHER_IN`; out `SOLD_AT_SHOP`, `DAMAGED`, `RETURNED_TO_SUPPLIER`, `EXPIRED`, `OTHER_OUT`; adjustment `STOCK_COUNT`, `OTHER_ADJUSTMENT`. In/out: `quantity` = units moved (≥1). Adjustment: `quantity` = correct quantity on hand | 201 movement (product row locked during the change) | 400 (quantity, reason set automatically, supplier only for stock in/returns, unit cost only for purchases, inactive supplier), 409 stock would go below 0 |
 | PATCH | `/api/admin/inventory/products/{productId}/threshold` | `{reorderLevel*}` 0–100000 | 200 stock row (the website's "Few left" follows it) | 400, 404 |
 
@@ -122,21 +127,43 @@ The public website is information-only. There are **no** order, cart, checkout, 
 | GET | `/api/admin/customers` | `search` (name, mobile, email) | Up to 200 contacts – all staff | – |
 | GET | `/api/admin/customers/{id}` | – | Contact – all staff | 404 |
 | POST / PUT | `/api/admin/customers` · `/{id}` | `{fullName*, phone, email (one of them required), address, notes}` | 201 / 200 | 400, 409 mobile already saved |
-| DELETE | `/api/admin/customers/{id}` | – | 204 (permanent; logged) | 404 |
+| DELETE | `/api/admin/customers/{id}` | – | 204 (permanent; logged; their bills keep the name/mobile snapshot) | 404 |
+| GET | `/api/admin/customers/{id}/bills` | `page` | Bill page (as `GET /api/admin/bills`) for this customer – purchase history; `finalizedTotal` = total purchases (voided excluded). All staff | 404 |
+
+POST `/api/admin/customers` is open to cashiers too (adding a customer while billing); PUT and DELETE stay OWNER/MANAGER.
+
+## 7a. Admin – in-store billing (all staff; void: OWNER, MANAGER)
+
+Sales made **in person at the shop counter**. Unit prices are always the product's current price (they cannot be sent). One bill-level discount, as an amount or a percentage, at most 20% of the subtotal. Totals are calculated on the server in paise-exact decimals. No GST, tax rate, licence number or address is invented: the PDF shows only the shop details saved in Business Settings.
+
+| Method | Path | Body / parameters | Success | Errors |
+|---|---|---|---|---|
+| GET | `/api/admin/payment-methods` | – | `[{id, code, label, displayOrder, active}]` (V5 creates CASH, UPI "paid at the shop", CARD "paid at the shop", OTHER) | – |
+| POST / PUT | `/api/admin/payment-methods` · `/{id}` | `{code* ^[A-Z][A-Z0-9_]{1,19}$, label* ≤60, displayOrder* 0–9999, active*}` – OWNER only | 201 / 200; logged | 400, 403, 409 code/label used |
+| POST | `/api/admin/bills` | `{requestKey* (8–64 letters/digits/-; one per bill), customerId, items*[{productId*, quantity* 1–10000}] (≤100 lines; repeated products are merged), discountType AMOUNT\|PERCENT, discountValue, paymentMethod* (active code), paymentStatus* PAID\|PENDING, amountReceived (PAID: ≥ total), notes ≤300}` | 201 bill `{id, billNumber SC-YYYY-NNNNNN, status, customerId, customerName, customerPhone, subtotal, discountAmount, total, paymentMethod{}, paymentStatus, amountReceived, changeDue, notes, createdByName, createdAt, voidedAt, voidedByName, voidReason, items[{lineNo, productId, productName, productSku, packSize, unit, unitPrice, quantity, lineTotal}], replayed:false}`. Sending the same `requestKey` again returns the saved bill with 200 and `replayed:true` – never a second bill | 400 (discount > 20%, received < total, inactive method, inactive product), 404 product/customer, 409 `items`: "only N of X in stock" |
+| GET | `/api/admin/bills` | `from`, `to` (India dates), `search` (bill no., customer name/mobile), `paymentMethod`, `paymentStatus`, `status` FINALIZED\|VOIDED, `customerId`, `page`, `size` 25\|50\|100 | `{page{content[{id, billNumber, status, customerName, customerPhone, itemCount, total, paymentMethod, paymentStatus, createdByName, createdAt}]…}, finalizedCount, finalizedTotal, voidedCount, pendingTotal}` | 400 |
+| GET | `/api/admin/bills/{id}` | – | Bill | 404 |
+| PATCH | `/api/admin/bills/{id}/payment` | `{paymentMethod*, amountReceived}` | 200 – a PENDING bill becomes PAID; logged | 400, 404, 409 voided / already paid |
+| POST | `/api/admin/bills/{id}/void` | `{reason*}` – OWNER, MANAGER | 200 – bill kept as VOIDED, every item returned to stock with a `BILL_VOID` movement, no longer counted as revenue; logged | 400, 403 cashier, 404, 409 already voided |
+| GET | `/api/admin/bills/{id}/invoice.pdf` | `download=true` for an attachment | A5 PDF invoice (inline) – "VOIDED" banner on voided bills; no GST/tax lines | 404 |
+
+Stock is deducted exactly once per bill: the product rows are locked (in id order) for the whole transaction, each line writes one `BILL_SALE` stock movement linked to the bill, and bill numbers come from a per-year counter row.
 
 ## 8. Admin – reports (OWNER, MANAGER)
 
-JSON by default; add `format=csv` for a CSV download (UTF-8 with BOM, spreadsheet formulas neutralised, at most 10,000 rows). Periods default to the last 30 days, `from` ≤ `to`, at most 5 years. No sales, revenue or profit figures exist; "purchase value" is only the unit cost staff entered on stock received.
+JSON by default; `format=csv` for a CSV download (UTF-8 with BOM, spreadsheet formulas neutralised, at most 10,000 rows) or `format=pdf` for a PDF table. Periods default to the last 30 days, `from` ≤ `to`, at most 5 years. **Revenue** = totals of FINALIZED in-store bills only (voided bills excluded); **expenses** are reported separately; **no profit** is calculated, because a reliable cost is not recorded for every sale. "Purchase value" is only the unit cost staff entered on stock received.
 
 | Method | Path | Parameters | Response |
 |---|---|---|---|
-| GET | `/api/admin/reports/summary` | `from`, `to`, `groupBy` = DAY (≤1 year)\|MONTH\|YEAR, `format` | `{from, to, groupBy, rows[{period, stockInUnits, stockOutUnits, adjustmentUnits, movements, purchaseValue, expenseCount, expenseTotal}], totals}` |
+| GET | `/api/admin/reports/summary` | `from`, `to`, `groupBy` = DAY (≤1 year)\|MONTH\|YEAR, `format` | `{from, to, groupBy, rows[{period, stockInUnits, stockOutUnits, adjustmentUnits, movements, purchaseValue, expenseCount, expenseTotal, bills, revenue, discounts}], totals}` |
+| GET | `/api/admin/reports/billing` | `from`, `to`, `format` | `{from, to, finalizedBills, revenue, discounts, voidedBills, voidedTotal, pendingBills, pendingTotal, byPaymentMethod[{code, label, bills, total}]}` |
+| GET | `/api/admin/reports/product-sales` | `from`, `to`, `search`, `sort` = revenue\|units, `format` | `[{productId, productName, productSku, bills, unitsSold, revenue}]` (finalized bills) |
 | GET | `/api/admin/reports/stock-movements` | `from`, `to`, `type`, `reason`, `supplierId`, `productId`, `search`, `page`, `size`, `format` | Page of movements / CSV |
 | GET | `/api/admin/reports/low-stock` | `format` | Same as inventory alerts / CSV |
 | GET | `/api/admin/reports/suppliers` | `from`, `to`, `format` | `[{supplierId, name, active, deliveries, unitsReceived, purchaseValue, lastDeliveryAt}]` |
 | GET | `/api/admin/reports/expenses` | `from`, `to`, `format` | `{from, to, byCategory[{categoryId, category, count, total}], count, total}`; CSV adds every expense line |
 
-`format` other than `json`/`csv` → 400.
+`format` other than `json`/`csv`/`pdf` → 400.
 
 ## 9. Admin – owner only
 
@@ -153,4 +180,4 @@ JSON by default; add `format=csv` for a CSV download (UTF-8 with BOM, spreadshee
 | PUT | `/api/admin/settings` | full settings object (see `AdminSettingsDtos`): mobiles `[6-9]` + 9 digits, 6-digit pincode, Google Maps https link, ≤8 highlights, ≤20 tips | 200 | 400 |
 | GET, POST, PUT /{id}, DELETE /{id} | `/api/admin/banners` | `{eyebrow, title*, subtitle, ctaLabel, ctaLink (internal path, needs label), theme* gold\|orange\|blue, displayOrder*, active*}` | 200/201/204 | 400 outside link / button text without link, 404 |
 
-Activity log actions: `STAFF_CREATED`, `STAFF_UPDATED`, `STAFF_ACTIVATED`, `STAFF_DEACTIVATED`, `STAFF_PASSWORD_RESET`, `PRODUCT_DELETED`, `CATEGORY_DELETED`, `BRAND_DELETED`, `LOW_STOCK_LEVEL_CHANGED`, `SUPPLIER_CREATED/UPDATED/ACTIVATED/DEACTIVATED`, `EXPENSE_CREATED/UPDATED/CANCELLED`, `EXPENSE_CATEGORY_CREATED/UPDATED`, `CUSTOMER_CREATED/UPDATED/DELETED`. Stock changes are recorded in the stock history instead.
+Activity log actions: `STAFF_CREATED`, `STAFF_UPDATED`, `STAFF_ACTIVATED`, `STAFF_DEACTIVATED`, `STAFF_PASSWORD_RESET`, `PRODUCT_CREATED`, `PRODUCT_UPDATED`, `PRODUCT_DELETED`, `CATEGORY_DELETED`, `BRAND_DELETED`, `LOW_STOCK_LEVEL_CHANGED`, `SUPPLIER_CREATED/UPDATED/ACTIVATED/DEACTIVATED`, `EXPENSE_CREATED/UPDATED/CANCELLED`, `EXPENSE_CATEGORY_CREATED/UPDATED`, `CUSTOMER_CREATED/UPDATED/DELETED`, `BILL_CREATED`, `BILL_PAID`, `BILL_VOIDED`, `PAYMENT_METHOD_CREATED/UPDATED`. Stock changes are recorded in the stock history instead.

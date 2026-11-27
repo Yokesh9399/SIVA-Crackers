@@ -74,7 +74,7 @@ The public website is information-only. There are **no** public order, cart, che
 | POST | `/api/auth/register` | none + CSRF | `{fullName*, email*, phone, password*}` | 201 user + session cookie. **Always role CUSTOMER** (a `role` field is ignored) | 400 (email format, mobile `[6-9]` + 9 digits, password 8–72 chars with a letter and a digit), 409 email/mobile already registered, 429 (10 registrations/hour per IP) |
 | POST | `/api/auth/login` | none + CSRF | `{identifier* (email or mobile), password*}` | 200 user + cookie (customers only) | 401 `Incorrect email/phone or password.` (same for unknown account), 429 after 5 failures (locked 15 min) or 30 attempts/15 min per IP |
 | POST | `/api/auth/staff/login` | none + CSRF | same | 200 (OWNER/MANAGER/CASHIER only) | same; deactivated accounts 401 |
-| POST | `/api/auth/logout` | none + CSRF | – | 204, cookie deleted | – |
+| POST | `/api/auth/logout` | none + CSRF | – | 204, cookie deleted; the account's session tokens are invalidated on the server (a copied cookie stops working; all of this account's sessions end, as after a password change) | – |
 | GET | `/api/account/profile` | logged in | – | 200 user | 401 |
 | PUT | `/api/account/profile` | logged in + CSRF | `{fullName*, phone}` | 200 user | 400, 409 mobile used |
 | PUT | `/api/account/password` | logged in + CSRF | `{currentPassword*, newPassword*}` | 200 user + **new** cookie; all other sessions end | 400 wrong current / same as old / weak, 429 |
@@ -104,7 +104,7 @@ The public website is information-only. There are **no** public order, cart, che
 | GET | `/api/admin/inventory` | same filters as admin products | Page of `{productId, name, sku, category, brand, stockQuantity, reorderLevel, stockStatus, active, visibleOnWebsite, imageUrl, price, packSize, unit, lastMovementAt, lastMovementBy}` | 400 |
 | GET | `/api/admin/inventory/alerts` | – | `{lowStockCount, outOfStockCount, lowStock[], outOfStock[]}` (active products) | – |
 | GET | `/api/admin/inventory/reasons` | – | `[{code, type, label}]` usable reasons | – |
-| GET | `/api/admin/inventory/products/{productId}` | – | One stock row | 404 |
+| GET | `/api/admin/inventory/products/{productId}` | – | One stock row (incl. `lastMovementAt`, `lastMovementBy`) | 404 |
 | GET | `/api/admin/inventory/movements` | `from`, `to` (dates, ≤5 years), `type` = STOCK_IN\|STOCK_OUT\|ADJUSTMENT, `reason`, `productId`, `supplierId`, `search`, `page`, `size` = 25\|50\|100 | Page of `{id, productId, productName, productSku, type, reason, reasonLabel, previousQuantity, quantityChange, newQuantity, supplier{id,name}, unitCost, note, performedById, performedByName, billId, createdAt}`, newest first. Reasons `BILL_SALE` / `BILL_VOID` are written only by billing | 400 |
 | POST | `/api/admin/inventory/movements` | `{productId*, reason*, quantity*, supplierId, unitCost, note}` – reasons: in `PURCHASE`, `CUSTOMER_RETURN`, `OTHER_IN`; out `SOLD_AT_SHOP`, `DAMAGED`, `RETURNED_TO_SUPPLIER`, `EXPIRED`, `OTHER_OUT`; adjustment `STOCK_COUNT`, `OTHER_ADJUSTMENT`. In/out: `quantity` = units moved (≥1). Adjustment: `quantity` = correct quantity on hand | 201 movement (product row locked during the change) | 400 (quantity, reason set automatically, supplier only for stock in/returns, unit cost only for purchases, inactive supplier), 409 stock would go below 0 |
 | PATCH | `/api/admin/inventory/products/{productId}/threshold` | `{reorderLevel*}` 0–100000 | 200 stock row (the website's "Few left" follows it) | 400, 404 |
@@ -157,7 +157,7 @@ JSON by default; `format=csv` for a CSV download (UTF-8 with BOM, spreadsheet fo
 |---|---|---|---|
 | GET | `/api/admin/reports/summary` | `from`, `to`, `groupBy` = DAY (≤1 year)\|MONTH\|YEAR, `format` | `{from, to, groupBy, rows[{period, stockInUnits, stockOutUnits, adjustmentUnits, movements, purchaseValue, expenseCount, expenseTotal, bills, revenue, discounts}], totals}` |
 | GET | `/api/admin/reports/billing` | `from`, `to`, `format` | `{from, to, finalizedBills, revenue, discounts, voidedBills, voidedTotal, pendingBills, pendingTotal, byPaymentMethod[{code, label, bills, total}]}` |
-| GET | `/api/admin/reports/product-sales` | `from`, `to`, `search`, `sort` = revenue\|units, `format` | `[{productId, productName, productSku, bills, unitsSold, revenue}]` (finalized bills) |
+| GET | `/api/admin/reports/product-sales` | `from`, `to`, `search`, `sort` = revenue\|units, `format` | `[{productId, productName, productSku, bills, unitsSold, revenue}]` (finalized bills; `revenue` = line totals **before** bill-level discounts – CSV/PDF column "Sales before bill discount") |
 | GET | `/api/admin/reports/stock-movements` | `from`, `to`, `type`, `reason`, `supplierId`, `productId`, `search`, `page`, `size`, `format` | Page of movements / CSV |
 | GET | `/api/admin/reports/low-stock` | `format` | Same as inventory alerts / CSV |
 | GET | `/api/admin/reports/suppliers` | `from`, `to`, `format` | `[{supplierId, name, active, deliveries, unitsReceived, purchaseValue, lastDeliveryAt}]` |

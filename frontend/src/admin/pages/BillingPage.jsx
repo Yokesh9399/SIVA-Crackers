@@ -10,7 +10,7 @@ import Skeleton from '../../components/ui/Skeleton.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { useToast } from '../hooks/useToast.js';
 import { adminService, invoiceUrl } from '../adminService.js';
-import { fmtMoney } from '../format.js';
+import { fmtMoney, plural } from '../format.js';
 import { discountPaise, newRequestKey, subtotalPaise, toPaise, toRupees } from '../billing.js';
 import { CustomerForm } from './CustomersPage.jsx';
 import { formErrorMessage } from '../../utils/authValidation.js';
@@ -25,7 +25,7 @@ function ProductSearch({ cart, onAdd }) {
     const t = setTimeout(() => setQuery(text.trim()), 300);
     return () => clearTimeout(t);
   }, [text]);
-  const list = useAsync(() => adminService.listStock({ search: query, size: 25, sort: 'name' }), [query]);
+  const list = useAsync(() => adminService.listStock({ search: query, size: 25, sort: 'name,asc' }), [query]);
   const rows = (list.data?.content ?? []).filter((p) => p.active);
 
   return (
@@ -106,7 +106,7 @@ function CustomerPicker({ customer, onChange }) {
         <label className="relative block flex-1">
           <span className="sr-only">Find a customer by name or mobile</span>
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-          <input type="search" className="admin-input pl-9" placeholder="Customer name or mobile (optional)" value={text} maxLength={100} onChange={(e) => setText(e.target.value)} />
+          <input type="search" className="admin-input pl-9" placeholder="Name or mobile (optional)" value={text} maxLength={100} onChange={(e) => setText(e.target.value)} />
         </label>
         <button type="button" className="admin-btn-secondary shrink-0" onClick={() => setAdding(true)}>
           <UserPlus className="size-4" aria-hidden="true" /> New
@@ -250,7 +250,7 @@ export default function BillingPage() {
   return (
     <>
       {header}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+      <div className={`grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] ${cart.length ? 'pb-20 lg:pb-0' : ''}`}>
         <ProductSearch cart={cart} onAdd={add} />
         <form onSubmit={submit} noValidate className="admin-card space-y-4 p-4" aria-labelledby="pos-bill">
           <h2 id="pos-bill" className="font-semibold">Current bill</h2>
@@ -361,6 +361,19 @@ export default function BillingPage() {
           </div>
         </form>
       </div>
+      {cart.length > 0 && (
+        // Phones: the bill is below the product list, so keep its total in view.
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur lg:hidden">
+          <button
+            type="button"
+            className="btn-primary w-full justify-between"
+            onClick={() => document.getElementById('pos-bill')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            <span>{plural(cart.reduce((n, l) => n + l.quantity, 0), 'item')} · {rupees(total)}</span>
+            <span>View bill</span>
+          </button>
+        </div>
+      )}
     </>
   );
 }

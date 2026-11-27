@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 /**
@@ -54,8 +55,13 @@ export default function Modal({ title, onClose, children, footer, size = 'md', c
 
   const width = { sm: 'max-w-md', md: 'max-w-xl', lg: 'max-w-3xl' }[size];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/60 p-0 sm:items-center sm:p-4">
+  // Rendered on <body> (never inside a page's own <form>), and a form submitted inside the dialog never
+  // reaches a form of the page behind it (React events bubble through portals).
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/60 p-0 sm:items-center sm:p-4"
+      onSubmit={(e) => e.stopPropagation()}
+    >
       <div
         ref={panel}
         role="dialog"
@@ -81,6 +87,7 @@ export default function Modal({ title, onClose, children, footer, size = 'md', c
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 px-5 py-3">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

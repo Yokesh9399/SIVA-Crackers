@@ -46,6 +46,16 @@ public class AccountService {
      * Requires the current password (rate-limited like logins). On success every existing session
      * of this user ends; the caller issues a fresh session cookie for the current browser.
      */
+    /**
+     * Logout: makes every session token issued so far for this account invalid on the server, so a copied or
+     * stolen cookie cannot be used after the user logs out (tokens are stateless; the token version is checked
+     * on every request).
+     */
+    @Transactional
+    public void endSessions(Long userId) {
+        users.findById(userId).ifPresent(User::invalidateSessions);
+    }
+
     @Transactional
     public User changePassword(Long userId, ChangePasswordRequest req) {
         String key = "password-change:" + userId;

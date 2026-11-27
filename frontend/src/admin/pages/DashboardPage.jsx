@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Package, Eye, EyeOff, Archive, Star, AlertTriangle, PackageX, Tags, Award, Plus, PanelsTopLeft, FlaskConical, Users, Truck, Wallet, ArrowDownUp, ReceiptIndianRupee, CalendarDays } from 'lucide-react';
-import { fmtChange, fmtDate, fmtDateTime, fmtMoney } from '../format.js';
+import { fmtChange, fmtDate, fmtDateTime, fmtMoney, plural } from '../format.js';
 import { useAuth } from '../../hooks/useAuth.js';
 import AdminPageHeader from '../components/AdminPageHeader.jsx';
 import { AdminImage } from '../components/ImageUploader.jsx';
@@ -14,16 +14,16 @@ import { formatCurrency } from '../../utils/format.js';
 function StatCard({ icon: Icon, label, value, to, tone = 'text-navy-900' }) {
   const body = (
     <>
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-gold-400/20 text-orange-600">
+      <span className="hidden size-10 shrink-0 place-items-center rounded-xl bg-gold-400/20 text-orange-600 sm:grid">
         <Icon className="size-5" aria-hidden="true" />
       </span>
-      <span className="min-w-0">
-        <span className={`block font-display text-2xl font-extrabold ${tone}`}>{value}</span>
+      <span className="min-w-0 flex-1">
+        <span className={`block font-display text-xl font-extrabold break-words sm:text-2xl ${tone}`}>{value}</span>
         <span className="block text-xs font-medium text-slate-500">{label}</span>
       </span>
     </>
   );
-  const cls = 'admin-card flex items-center gap-3 p-4';
+  const cls = 'admin-card flex min-w-0 items-center gap-3 p-4';
   return to ? (
     <Link to={to} className={`${cls} transition hover:ring-gold-400`}>
       {body}
@@ -36,7 +36,7 @@ function StatCard({ icon: Icon, label, value, to, tone = 'text-navy-900' }) {
 /** A small "latest five" list card. */
 function RecentList({ title, to, linkLabel, items, empty, render }) {
   return (
-    <section className="admin-card p-5" aria-label={title}>
+    <section className="admin-card min-w-0 p-5" aria-label={title}>
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg font-bold">{title}</h2>
         <Link to={to} className="text-sm font-medium text-orange-600 hover:underline">{linkLabel}</Link>
@@ -82,19 +82,19 @@ export default function DashboardPage() {
         <p className="mb-6 flex gap-2 rounded-xl bg-violet-50 p-3 text-sm text-violet-900 ring-1 ring-violet-200">
           <FlaskConical className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>
-            {d.demoProducts} products are <strong>demo data</strong> (marked “Demo”). While any are visible, the website shows a
+            {d.demoProducts === 1 ? '1 product is' : `${d.demoProducts} products are`} <strong>demo data</strong> (marked “Demo”). While any are visible, the website shows a
             demonstration notice. Delete or hide them once your real products are added.
           </span>
         </p>
       )}
 
-      <section aria-label="Catalogue figures" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+      <section aria-label="Catalogue figures" className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
         {loading || !d ? (
           Array.from({ length: 16 }, (_, i) => <Skeleton key={i} className="h-[4.5rem]" />)
         ) : (
           <>
-            <StatCard icon={ReceiptIndianRupee} label={`Sales today (${d.billsToday} bills)`} value={fmtMoney(d.revenueToday)} to="/admin/bills" />
-            <StatCard icon={CalendarDays} label={`Sales this month (${d.billsThisMonth} bills)`} value={fmtMoney(d.revenueThisMonth)} to="/admin/reports" />
+            <StatCard icon={ReceiptIndianRupee} label={`Sales today (${plural(d.billsToday, 'bill')})`} value={fmtMoney(d.revenueToday)} to="/admin/bills" />
+            <StatCard icon={CalendarDays} label={`Sales this month (${plural(d.billsThisMonth, 'bill')})`} value={fmtMoney(d.revenueThisMonth)} to="/admin/reports" />
             <StatCard icon={Package} label="Total products" value={d.totalProducts} to="/admin/products" />
             <StatCard icon={Eye} label="Active products" value={d.activeProducts} to="/admin/products?visibility=VISIBLE" />
             <StatCard icon={Archive} label="Inactive products" value={d.inactiveProducts} to="/admin/products?visibility=INACTIVE" />
@@ -112,7 +112,7 @@ export default function DashboardPage() {
       </section>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
-        <section className="admin-card p-5 lg:col-span-2" aria-labelledby="dist-title">
+        <section className="admin-card min-w-0 p-5 lg:col-span-2" aria-labelledby="dist-title">
           <h2 id="dist-title" className="text-lg font-bold">
             Products by category
           </h2>
@@ -139,7 +139,7 @@ export default function DashboardPage() {
           )}
         </section>
 
-        <section className="admin-card p-5 lg:col-span-3" aria-labelledby="recent-title">
+        <section className="admin-card min-w-0 p-5 lg:col-span-3" aria-labelledby="recent-title">
           <div className="flex items-center justify-between gap-2">
             <h2 id="recent-title" className="text-lg font-bold">
               Recently added
@@ -189,7 +189,7 @@ export default function DashboardPage() {
           title="Recent bills" to="/admin/bills" linkLabel="All bills" items={d?.recentBills} empty="No bills yet."
           render={(b) => (
             <li key={b.id} className="flex items-center justify-between gap-2 py-2">
-              <span className="min-w-0">
+              <span className="min-w-0 flex-1">
                 <span className="block font-medium">{b.billNumber}</span>
                 <span className="block truncate text-xs text-slate-500">{fmtDateTime(b.createdAt)} · {b.customerName ?? 'Walk-in'}</span>
               </span>
@@ -204,7 +204,7 @@ export default function DashboardPage() {
           title="Recent stock changes" to="/admin/stock-history" linkLabel="Stock movements" items={d?.recentMovements} empty="No stock changes yet."
           render={(m) => (
             <li key={m.id} className="flex items-center justify-between gap-2 py-2">
-              <span className="min-w-0">
+              <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{m.productName}</span>
                 <span className="block truncate text-xs text-slate-500">{m.reasonLabel} · {m.performedByName ?? '—'} · {fmtDateTime(m.createdAt)}</span>
               </span>
@@ -216,7 +216,7 @@ export default function DashboardPage() {
           title="Recent expenses" to="/admin/expenses" linkLabel="All expenses" items={d?.recentExpenses} empty="No expenses yet."
           render={(e) => (
             <li key={e.id} className="flex items-center justify-between gap-2 py-2">
-              <span className="min-w-0">
+              <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{e.description}</span>
                 <span className="block truncate text-xs text-slate-500">{e.category?.name} · {fmtDate(e.expenseDate)}</span>
               </span>

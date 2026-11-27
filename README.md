@@ -68,7 +68,7 @@ Screenshots: [`docs/screenshots/phase3/`](docs/screenshots/phase3/)
 - **In-store billing / POS** (approved 26 Nov 2026, admin only): bills for customers buying at the shop counter, stock deducted exactly once, bill-level discount up to 20%, cash / UPI / card at the shop (no online payment), pending payments, void with reason (owner/manager), bill history, **PDF invoices** (no invented GST or licence), customer purchase history
 - Reports add **billing** and **product sales**, with **CSV and PDF** export; revenue counts finalized bills only; no profit is shown (no reliable cost per sale). Nothing is sold online
 
-**Testing:** 185/185 backend tests (127 on MySQL), 57/57 frontend component tests. The logged-in admin was **not** checked in a browser. See [Phase 6 notes](docs/PHASE_6_NOTES.md) and the [API reference](docs/API.md).
+**Testing:** 185/185 backend tests (127 on MySQL), 65/65 frontend component tests, and a full browser verification of the logged-in admin (all roles, 5 screen widths) – see the [verification report](docs/PHASE_5_6_VERIFICATION.md). See [Phase 6 notes](docs/PHASE_6_NOTES.md) and the [API reference](docs/API.md).
 
 > **Before going live:** legal pages are drafts that need review by the owner and a legal adviser, and the safety/first-aid content and emergency numbers should be checked against official sources (listed in the Phase 3 notes).
 
@@ -101,4 +101,5 @@ The site reads everything from the Spring Boot API: start the backend first (`ba
 - [Phase 4 – Plan](docs/PHASE_4_PLAN.md), [Notes](docs/PHASE_4_NOTES.md), [Implementation reference](docs/PHASE_4_IMPLEMENTATION.md)
 - [Phase 5 – Notes](docs/PHASE_5_NOTES.md), [Implementation reference](docs/PHASE_5_IMPLEMENTATION.md)
 - [Phase 6 – Notes](docs/PHASE_6_NOTES.md)
+- [Phase 5 & 6 – Browser verification report](docs/PHASE_5_6_VERIFICATION.md)
 - [API reference](docs/API.md) and [Postman collection](docs/postman/)

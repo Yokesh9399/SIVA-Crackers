@@ -203,7 +203,7 @@ describe('Reports with billing', () => {
     renderAdmin({ '/admin/reports': <ReportsPage /> }, { at: '/admin/reports', auth: OWNER });
     await userEvent.click(screen.getByRole('tab', { name: 'Billing' }));
     expect((await screen.findByText('Revenue (4 finalized bills)')).previousSibling).toHaveTextContent('₹1,000.00');
-    expect(screen.getByText('Voided (1 bills, not counted)')).toBeInTheDocument();
+    expect(screen.getByText('Voided (1 bill, not counted)')).toBeInTheDocument();
     expect(screen.queryByText(/^profit/i)).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Download PDF/ }).getAttribute('href')).toMatch(/\/admin\/reports\/billing\?.*format=pdf/);
     expect(screen.getByRole('link', { name: /Download CSV/ }).getAttribute('href')).toMatch(/\/admin\/reports\/billing\?.*format=csv/);

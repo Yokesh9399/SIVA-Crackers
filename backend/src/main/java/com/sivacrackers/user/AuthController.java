@@ -79,9 +79,16 @@ public class AuthController {
         return UserResponse.of(user);
     }
 
-    /** Ends the session in this browser (deletes the cookie). Safe to call when not logged in. */
+    /**
+     * Ends the session: the session token is invalidated on the server (all of this account's sessions end, as
+     * after a password change) and the cookie is deleted. Safe to call when not logged in.
+     */
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal AuthUser user, HttpServletRequest request,
+                                       HttpServletResponse response) {
+        if (user != null) {
+            accounts.endSessions(user.id());
+        }
         cookies.clear(response);
         rotateCsrfToken(request, response);
         return ResponseEntity.noContent().build();

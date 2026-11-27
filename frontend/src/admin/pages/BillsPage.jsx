@@ -16,7 +16,7 @@ import { useAuth } from '../../hooks/useAuth.js';
 import { useToast } from '../hooks/useToast.js';
 import { adminService, invoiceUrl } from '../adminService.js';
 import { canVoid } from '../roles.js';
-import { fmtDateTime, fmtMoney } from '../format.js';
+import { fmtDateTime, fmtMoney, plural } from '../format.js';
 import { formErrorMessage, serverFieldErrors } from '../../utils/authValidation.js';
 
 export function BillStatusBadges({ status, paymentStatus }) {
@@ -39,6 +39,7 @@ function BillDetail({ billId, methods, onClose, onChanged }) {
   const [busy, setBusy] = useState(false);
   const b = bill.data;
   const activeMethods = methods.filter((m) => m.active);
+  const defaultMethod = activeMethods.find((m) => m.code === b?.paymentMethod?.code)?.code ?? activeMethods[0]?.code ?? '';
 
   async function act(e) {
     e.preventDefault();
@@ -52,7 +53,7 @@ function BillDetail({ billId, methods, onClose, onChanged }) {
         await adminService.voidBill(billId, reason.trim());
         toast.success(`Bill ${b.billNumber} was voided and its stock was returned.`);
       } else {
-        await adminService.markBillPaid(billId, { paymentMethod: payMethod || activeMethods[0]?.code, amountReceived: received || null });
+        await adminService.markBillPaid(billId, { paymentMethod: payMethod || defaultMethod, amountReceived: received || null });
         toast.success(`Bill ${b.billNumber} is now paid.`);
       }
       setMode(null);
@@ -135,12 +136,12 @@ function BillDetail({ billId, methods, onClose, onChanged }) {
               <FormMessage>{formError}</FormMessage>
               {mode === 'void' ? (
                 <>
-                  <p>Voiding cancels this bill and puts its {b.items.reduce((n, i) => n + i.quantity, 0)} items back into stock. The bill stays in the history marked “Voided”. This cannot be undone.</p>
+                  <p>Voiding cancels this bill and puts its {plural(b.items.reduce((n, i) => n + i.quantity, 0), 'item')} back into stock. The bill stays in the history marked “Voided”. This cannot be undone.</p>
                   <TextAreaField label="Reason" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} error={errors.reason} maxLength={300} data-autofocus />
                 </>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <SelectField label="Paid with" value={payMethod || activeMethods[0]?.code || ''} onChange={(e) => setPayMethod(e.target.value)} error={errors.paymentMethod}>
+                  <SelectField label="Paid with" value={payMethod || defaultMethod} onChange={(e) => setPayMethod(e.target.value)} error={errors.paymentMethod}>
                     {activeMethods.map((m) => <option key={m.code} value={m.code}>{m.label}</option>)}
                   </SelectField>
                   <label className="block text-sm font-medium text-navy-900">
@@ -204,9 +205,9 @@ export default function BillsPage() {
   return (
     <>
       <AdminPageHeader
-        title="Bill history"
+        title="Bill History"
         description="Every in-store bill. Voided bills stay here for the record but never count as sales."
-        crumbs={[{ label: 'Billing / POS', to: '/admin/billing' }, { label: 'Bill history' }]}
+        crumbs={[{ label: 'Billing / POS', to: '/admin/billing' }, { label: 'Bill History' }]}
         actions={<Link to="/admin/billing" className="btn-primary"><Plus className="size-4" aria-hidden="true" /> New bill</Link>}
       />
       <section aria-label="Filters" className="admin-card mb-4 grid grid-cols-1 gap-3 p-4 md:grid-cols-2 lg:grid-cols-6">
@@ -250,16 +251,16 @@ export default function BillsPage() {
       ) : (
         <>
           <dl className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <div className="admin-card p-4"><dt className="text-xs text-slate-500">Sales (finalized bills)</dt><dd className="text-xl font-bold">{fmtMoney(d.finalizedTotal)}</dd></div>
-            <div className="admin-card p-4"><dt className="text-xs text-slate-500">Finalized bills</dt><dd className="text-xl font-bold">{d.finalizedCount}</dd></div>
-            <div className="admin-card p-4"><dt className="text-xs text-slate-500">Payment pending</dt><dd className="text-xl font-bold">{fmtMoney(d.pendingTotal)}</dd></div>
-            <div className="admin-card p-4"><dt className="text-xs text-slate-500">Voided bills</dt><dd className="text-xl font-bold">{d.voidedCount}</dd></div>
+            <div className="admin-card p-4"><dt className="text-xs text-slate-500">Sales (finalized bills)</dt><dd className="text-xl font-bold break-words">{fmtMoney(d.finalizedTotal)}</dd></div>
+            <div className="admin-card p-4"><dt className="text-xs text-slate-500">Finalized bills</dt><dd className="text-xl font-bold break-words">{d.finalizedCount}</dd></div>
+            <div className="admin-card p-4"><dt className="text-xs text-slate-500">Payment pending</dt><dd className="text-xl font-bold break-words">{fmtMoney(d.pendingTotal)}</dd></div>
+            <div className="admin-card p-4"><dt className="text-xs text-slate-500">Voided bills</dt><dd className="text-xl font-bold break-words">{d.voidedCount}</dd></div>
           </dl>
           {d.page.totalElements === 0 ? (
             <EmptyState title="No bills found" message="Bills appear here once they are made on the Billing / POS page." />
           ) : (
             <>
-              <p className="mb-2 text-sm text-slate-600" aria-live="polite">{d.page.totalElements} bills</p>
+              <p className="mb-2 text-sm text-slate-600" aria-live="polite">{plural(d.page.totalElements, 'bill')}</p>
               <div className="admin-card hidden overflow-x-auto md:block">
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-slate-100 text-xs tracking-wide text-slate-500 uppercase">
@@ -277,7 +278,7 @@ export default function BillsPage() {
                       <tr key={b.id}>
                         <td className="px-4 py-3">
                           <button type="button" className="font-medium text-orange-600 hover:underline" onClick={() => setOpen(b.id)}>{b.billNumber}</button>
-                          <span className="block text-xs text-slate-400">{b.itemCount} items</span>
+                          <span className="block text-xs text-slate-400">{plural(b.itemCount, 'item')}</span>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-slate-600">{fmtDateTime(b.createdAt)}</td>
                         <td className="px-4 py-3">{b.customerName ?? <span className="text-slate-400">Walk-in</span>}<span className="block text-xs text-slate-400">{b.customerPhone}</span></td>

@@ -14,7 +14,7 @@ import Skeleton from '../../components/ui/Skeleton.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { useAuth } from '../../hooks/useAuth.js';
 import { useToast } from '../hooks/useToast.js';
-import { fmtDateTime, fmtMoney } from '../format.js';
+import { fmtDateTime, fmtMoney, plural } from '../format.js';
 import { adminService } from '../adminService.js';
 import { canEdit } from '../roles.js';
 import { formErrorMessage, serverFieldErrors } from '../../utils/authValidation.js';
@@ -241,12 +241,12 @@ export default function InventoryPage() {
   return (
     <>
       <AdminPageHeader
-        title="Stock"
+        title="Inventory"
         description={editable ? 'Current stock of every product. Record stock received, stock leaving the shop and counts here – every change is kept in the stock history.' : 'Current stock of every product (view only).'}
-        crumbs={[{ label: 'Stock' }]}
+        crumbs={[{ label: 'Inventory' }]}
         actions={
           <Link to="/admin/stock-history" className="admin-btn-secondary">
-            <History className="size-4" aria-hidden="true" /> Stock history
+            <History className="size-4" aria-hidden="true" /> Stock Movements
           </Link>
         }
       />
@@ -306,7 +306,7 @@ export default function InventoryPage() {
         <EmptyState title="No products match" message="Try a different search or filter." />
       ) : (
         <>
-          <p className="mb-2 text-sm text-slate-600" aria-live="polite">{list.data.totalElements} products</p>
+          <p className="mb-2 text-sm text-slate-600" aria-live="polite">{plural(list.data.totalElements, 'product')}</p>
           <ul className="space-y-2">
             {list.data.content.map((r) => (
               <li key={r.productId} className="admin-card flex flex-wrap items-center gap-3 p-3">

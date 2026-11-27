@@ -258,6 +258,16 @@ class BusinessApiIT extends AbstractApiIT {
                     .andExpect(status().isBadRequest());
             mvc.perform(json(patch("/api/admin/inventory/products/" + pid + "/threshold"), "{\"reorderLevel\":3}", cashier))
                     .andExpect(status().isForbidden());
+
+            // One product's stock row also says when stock last changed and who changed it (browser check, 27 Nov 2026)
+            mvc.perform(json(post("/api/admin/inventory/movements"), "{\"productId\":" + pid + ",\"reason\":\"PURCHASE\",\"quantity\":1}", manager))
+                    .andExpect(status().isCreated());
+            String who = jdbc.queryForObject("SELECT full_name FROM users WHERE email = 'manager6@example.test'", String.class);
+            mvc.perform(get("/api/admin/inventory/products/" + pid).cookie(cashier))
+                    .andExpect(jsonPath("$.lastMovementBy").value(who))
+                    .andExpect(jsonPath("$.lastMovementAt").isNotEmpty());
+            mvc.perform(json(patch("/api/admin/inventory/products/" + pid + "/threshold"), "{\"reorderLevel\":2}", manager))
+                    .andExpect(jsonPath("$.lastMovementBy").value(who));
         }
     }
 
@@ -309,6 +319,13 @@ class BusinessApiIT extends AbstractApiIT {
         mvc.perform(json(post("/api/admin/expenses"), body.replace("1250.50", "0"), manager))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.fieldErrors[0].field").value("amount"));
         mvc.perform(json(post("/api/admin/expenses"), body.replace("1250.50", "10.555"), manager)).andExpect(status().isBadRequest());
+        // The activity log always shows two decimals, even when the browser sends 7.5 (browser check, 27 Nov 2026)
+        MvcResult small = mvc.perform(json(post("/api/admin/expenses"), body.replace("1250.50", "7.5"), manager))
+                .andExpect(status().isCreated()).andReturn();
+        long smallId = ((Number) JsonPath.read(small.getResponse().getContentAsString(), "$.id")).longValue();
+        assertThat(jdbc.queryForObject("SELECT details FROM audit_log WHERE action = 'EXPENSE_CREATED' AND entity_id = ?", String.class, smallId))
+                .contains("₹7.50");
+        jdbc.update("DELETE FROM expenses WHERE id = ?", smallId); // keep the totals checked below unchanged
 
         mvc.perform(json(put("/api/admin/expenses/" + id), body.replace("1250.50", "1300.00"), owner))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.amount").value(1300.0));

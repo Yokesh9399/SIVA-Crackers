@@ -9,7 +9,7 @@ const tone = {
 
 export function Badge({ color = 'slate', children }) {
   return (
-    <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ${tone[color]}`}>
+    <span className={`inline-flex max-w-full items-center rounded-full sm:whitespace-nowrap px-2 py-0.5 text-xs font-semibold ring-1 ${tone[color]}`}>
       {children}
     </span>
   );

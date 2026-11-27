@@ -97,6 +97,8 @@ function SupplierDetail({ id, onClose }) {
             <dt className="text-slate-500">Email</dt><dd className="col-span-2 break-words">{d.supplier.email || '—'}</dd>
             <dt className="text-slate-500">Address</dt><dd className="col-span-2 break-words">{d.supplier.address || '—'}</dd>
             <dt className="text-slate-500">Notes</dt><dd className="col-span-2 break-words whitespace-pre-line">{d.supplier.notes || '—'}</dd>
+            <dt className="text-slate-500">Added</dt><dd className="col-span-2">{fmtDateTime(d.supplier.createdAt)}</dd>
+            <dt className="text-slate-500">Last changed</dt><dd className="col-span-2">{fmtDateTime(d.supplier.updatedAt)}</dd>
           </dl>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[['Deliveries', d.deliveries], ['Units received', d.unitsReceived], ['Purchase value', fmtMoney(d.purchaseValue)], ['Last delivery', fmtDateTime(d.lastDeliveryAt)]].map(([l, v]) => (

@@ -64,7 +64,12 @@ public class InventoryService {
 
     @Transactional(readOnly = true)
     public StockRow stockOf(Long productId) {
-        return row(products.findWithParentsById(productId).orElseThrow(() -> new NotFoundException("Product not found.")));
+        return rowWithLast(products.findWithParentsById(productId).orElseThrow(() -> new NotFoundException("Product not found.")));
+    }
+
+    /** One stock row including when stock last changed and who changed it. */
+    private StockRow rowWithLast(Product p) {
+        return row(p, movements.findLatestForProducts(List.of(p.getId())).stream().findFirst().orElse(null));
     }
 
     @Transactional(readOnly = true)
@@ -180,7 +185,7 @@ public class InventoryService {
             products.saveAndFlush(p);
             audit.record("LOW_STOCK_LEVEL_CHANGED", "PRODUCT", p.getId(), p.getName() + ": " + before + " → " + reorderLevel);
         }
-        return row(products.findWithParentsById(productId).orElseThrow());
+        return rowWithLast(products.findWithParentsById(productId).orElseThrow());
     }
 
     private StockMovement apply(Product p, MovementReason reason, int previous, int change, Supplier supplier,

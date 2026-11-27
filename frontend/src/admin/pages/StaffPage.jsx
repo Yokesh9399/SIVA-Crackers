@@ -178,9 +178,9 @@ export default function StaffPage() {
   return (
     <>
       <AdminPageHeader
-        title="Staff"
+        title="Staff Management"
         description="Accounts for the people who work at the shop. Managers run the shop day to day; cashiers can view stock and look up customers."
-        crumbs={[{ label: 'Staff' }]}
+        crumbs={[{ label: 'Staff Management' }]}
         actions={
           <button type="button" className="btn-primary" onClick={() => setEditing('new')}>
             <Plus className="size-4" aria-hidden="true" /> Add staff member

@@ -6,7 +6,7 @@ import FormField, { FormMessage } from '../../components/auth/FormField.jsx';
 import { useAuth } from '../../hooks/useAuth.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle.js';
 import { USE_MOCKS } from '../../config/env.js';
-import { STAFF_ROLES } from '../roles.js';
+import { STAFF_ROLES, startPageFor } from '../roles.js';
 
 function safeAdminPath(path) {
   return typeof path === 'string' && path.startsWith('/admin') && !path.startsWith('/admin/login') ? path : '/admin';
@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  if (status === 'authenticated' && STAFF_ROLES.includes(user?.role) && !submitting) return <Navigate to={returnTo} replace />;
+  if (status === 'authenticated' && STAFF_ROLES.includes(user?.role) && !submitting) return <Navigate to={startPageFor(user.role, returnTo)} replace />;
 
   async function submit(e) {
     e.preventDefault();
@@ -39,8 +39,8 @@ export default function AdminLoginPage() {
     if (next.identifier || next.password) return;
     setSubmitting(true);
     try {
-      await staffLogin({ identifier: identifier.trim(), password });
-      navigate(returnTo, { replace: true });
+      const signedIn = await staffLogin({ identifier: identifier.trim(), password });
+      navigate(startPageFor(signedIn?.role, returnTo), { replace: true });
     } catch (err) {
       setPassword('');
       setFormError(err.message);

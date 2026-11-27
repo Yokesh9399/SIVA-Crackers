@@ -1,6 +1,6 @@
 # Phase 5 – Admin dashboard: notes
 
-**Status:** first part `95f99fe`; staff management and the role table `5208911` (pushed). Final part (26 Nov 2026, **not committed yet**): sidebar order, cashier billing access, dashboard sales/suppliers/recent activity – see "Phase 5 final" below. Still **NOT VERIFIED**: clicking through the logged-in admin in a real browser.
+**Status:** `95f99fe`, `5208911`, `bb26f5f` (pushed). **Browser-verified on 27 Nov 2026** – every admin page and workflow, all roles, at 1440 / 1366 / 768 / 390 / 320 px; see [PHASE_5_6_VERIFICATION.md](PHASE_5_6_VERIFICATION.md). Fixes from that check are not committed yet.
 Reference: [PHASE_5_IMPLEMENTATION.md](PHASE_5_IMPLEMENTATION.md).
 
 ## Phase 5 final (26 Nov 2026)
@@ -50,8 +50,8 @@ Reference: [PHASE_5_IMPLEMENTATION.md](PHASE_5_IMPLEMENTATION.md).
 
 ## Not verified
 
-- **Logged-in admin in a real browser** (create/edit/delete, uploads and every admin page at 1440, 1366, 768, 430, 375, 360 and 320 px, console). Not done: the session's safety settings did not let the assistant read the generated test password, and the owner's login did not reach the in-app browser pane. The same behaviour is covered by the API tests and component tests above, but layout at each width has **not** been checked by eye. Recommended: open `/admin` on a phone and a laptop once after logging in.
-- Development database `siva_crackers` is still not migrated (`DB_PASSWORD` in `backend/.env` does not match the `siva_app` password).
+- Waiting 60 minutes for a session to expire (automated tests only).
+- The real OWNER account on the development database does not exist yet (owner task below); the browser check used a throwaway OWNER on the test database, deleted afterwards.
 
 ## Issues found and fixed
 

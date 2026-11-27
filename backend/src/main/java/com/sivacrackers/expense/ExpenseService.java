@@ -271,7 +271,7 @@ public class ExpenseService {
     }
 
     private static String describe(Expense e) {
-        return e.getExpenseDate() + " " + e.getCategory().getName() + " ₹" + e.getAmount().toPlainString() + " – " + e.getDescription();
+        return e.getExpenseDate() + " " + e.getCategory().getName() + " ₹" + e.getAmount().setScale(2, java.math.RoundingMode.HALF_UP).toPlainString() + " – " + e.getDescription();
     }
 
     private static String blankToNull(String s) {

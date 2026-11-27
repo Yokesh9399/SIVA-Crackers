@@ -10,7 +10,7 @@ import EmptyState from '../../components/ui/EmptyState.jsx';
 import Skeleton from '../../components/ui/Skeleton.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { adminService } from '../adminService.js';
-import { fmtChange, fmtDateTime, fmtMoney } from '../format.js';
+import { fmtChange, fmtDateTime, fmtMoney, plural } from '../format.js';
 
 const TYPE_BADGE = { STOCK_IN: ['green', 'Stock in'], STOCK_OUT: ['red', 'Stock out'], ADJUSTMENT: ['blue', 'Adjustment'] };
 
@@ -52,9 +52,9 @@ export default function StockHistoryPage() {
   return (
     <>
       <AdminPageHeader
-        title="Stock history"
+        title="Stock Movements"
         description="Every change to stock with the quantity before and after, who made it and why. Entries are never edited – mistakes are corrected with a new adjustment."
-        crumbs={[{ label: 'Stock', to: '/admin/inventory' }, { label: 'Stock history' }]}
+        crumbs={[{ label: 'Inventory', to: '/admin/inventory' }, { label: 'Stock Movements' }]}
       />
       <section aria-label="Filters" className="admin-card mb-4 grid grid-cols-1 gap-3 p-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="md:col-span-2">
@@ -98,7 +98,7 @@ export default function StockHistoryPage() {
         <EmptyState title="No stock changes found" message="Stock changes appear here once stock is received, sold, damaged or counted." />
       ) : (
         <>
-          <p className="mb-2 text-sm text-slate-600" aria-live="polite">{list.data.totalElements} changes</p>
+          <p className="mb-2 text-sm text-slate-600" aria-live="polite">{plural(list.data.totalElements, 'change')}</p>
           <div className="admin-card hidden overflow-x-auto md:block">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-slate-100 text-xs tracking-wide text-slate-500 uppercase">

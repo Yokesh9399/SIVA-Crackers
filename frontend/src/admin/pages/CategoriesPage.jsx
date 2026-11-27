@@ -13,6 +13,7 @@ import EmptyState from '../../components/ui/EmptyState.jsx';
 import Skeleton from '../../components/ui/Skeleton.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { useToast } from '../hooks/useToast.js';
+import { plural } from '../format.js';
 import { adminService } from '../adminService.js';
 import { formErrorMessage, serverFieldErrors } from '../../utils/authValidation.js';
 
@@ -194,7 +195,7 @@ export default function CategoriesPage() {
           message={
             toDelete.productCount > 0 ? (
               <p>
-                <strong>{toDelete.name}</strong> still has {toDelete.productCount} products, so it cannot be deleted. Move those products to
+                <strong>{toDelete.name}</strong> still has {plural(toDelete.productCount, 'product')}, so it cannot be deleted. Move those products to
                 another category first, or switch the category to inactive to hide it.
               </p>
             ) : (

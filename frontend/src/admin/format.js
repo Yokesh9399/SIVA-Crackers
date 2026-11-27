@@ -26,3 +26,6 @@ export function daysAgoIst(days) {
 
 /** Signed quantity: +40 / −5 */
 export const fmtChange = (n) => (n > 0 ? `+${n}` : `−${Math.abs(n)}`);
+
+/** "1 item" / "3 items" (pass `many` for irregular plurals). */
+export const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;

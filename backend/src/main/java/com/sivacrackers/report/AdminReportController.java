@@ -146,7 +146,7 @@ public class AdminReportController {
         }
         return export(f, new Table("Product sales", period(range.from().toString(), range.to().toString()) + " · finalized bills only",
                 "product-sales-" + range.from() + "-to-" + range.to(),
-                new String[] {"Product", "Code", "Bills", "Units sold", "Revenue (INR)"}, out));
+                new String[] {"Product", "Code", "Bills", "Units sold", "Sales before bill discount (INR)"}, out));
     }
 
     @GetMapping("/stock-movements")

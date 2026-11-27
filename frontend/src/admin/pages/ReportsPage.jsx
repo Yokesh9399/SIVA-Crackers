@@ -7,7 +7,7 @@ import ErrorState from '../../components/ui/ErrorState.jsx';
 import Skeleton from '../../components/ui/Skeleton.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { adminService, reportCsvUrl, reportPdfUrl } from '../adminService.js';
-import { daysAgoIst, fmtChange, fmtDateTime, fmtMoney, todayIst } from '../format.js';
+import { daysAgoIst, fmtChange, fmtDateTime, fmtMoney, todayIst, plural } from '../format.js';
 
 const TABS = [
   ['summary', 'Summary'],
@@ -22,7 +22,7 @@ const TABS = [
 function Card({ label, value }) {
   return (
     <div className="admin-card p-4">
-      <p className="text-xl font-extrabold">{value}</p>
+      <p className="text-xl font-extrabold break-words">{value}</p>
       <p className="text-xs text-slate-500">{label}</p>
     </div>
   );
@@ -56,7 +56,7 @@ function Summary({ range, groupBy }) {
   return (
     <>
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card label={`Revenue (${t.bills} finalized bills)`} value={fmtMoney(t.revenue)} />
+        <Card label={`Revenue (${plural(t.bills, 'finalized bill')})`} value={fmtMoney(t.revenue)} />
         <Card label="Discounts given" value={fmtMoney(t.discounts)} />
         <Card label="Units received" value={t.stockInUnits} />
         <Card label="Units out" value={t.stockOutUnits} />
@@ -83,10 +83,10 @@ function Billing({ range }) {
   return (
     <>
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card label={`Revenue (${d.finalizedBills} finalized bills)`} value={fmtMoney(d.revenue)} />
+        <Card label={`Revenue (${plural(d.finalizedBills, 'finalized bill')})`} value={fmtMoney(d.revenue)} />
         <Card label="Discounts given" value={fmtMoney(d.discounts)} />
-        <Card label={`Payment pending (${d.pendingBills} bills)`} value={fmtMoney(d.pendingTotal)} />
-        <Card label={`Voided (${d.voidedBills} bills, not counted)`} value={fmtMoney(d.voidedTotal)} />
+        <Card label={`Payment pending (${plural(d.pendingBills, 'bill')})`} value={fmtMoney(d.pendingTotal)} />
+        <Card label={`Voided (${plural(d.voidedBills, 'bill')}, not counted)`} value={fmtMoney(d.voidedTotal)} />
       </div>
       <Table
         head={['Payment method', 'Bills', 'Total']}
@@ -105,11 +105,14 @@ function ProductSales({ range, search, sort }) {
   if (r.error) return <ErrorState message={r.error.message} onRetry={r.retry} />;
   if (!r.data) return <Skeleton className="h-48" />;
   return (
+    <>
+      <p className="mb-2 text-xs text-slate-500">Sales per product at the listed price, before bill-level discounts (the Billing tab shows revenue after discounts).</p>
     <Table
-      head={['Product', 'Bills', 'Units sold', 'Revenue']}
+      head={['Product', 'Bills', 'Units sold', 'Sales before discount']}
       rows={r.data.map((p) => ({ cells: [`${p.productName} (${p.productSku ?? '—'})`, p.bills, p.unitsSold, fmtMoney(p.revenue)] }))}
       empty="No products sold in this period."
     />
+    </>
   );
 }
 

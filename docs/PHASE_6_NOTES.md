@@ -1,7 +1,7 @@
 # Phase 6 – Inventory, business management and in-store billing: notes
 
-**Status (26 Nov 2026):** implemented and tested (backend, database, frontend); **not committed** (awaiting your approval).
-**Not verified:** the logged-in admin in a real browser (see "Not verified" below).
+**Status (27 Nov 2026):** committed as `bb26f5f`; **browser-verified on 27 Nov 2026** (see [PHASE_5_6_VERIFICATION.md](PHASE_5_6_VERIFICATION.md)); 13 issues found in the browser were fixed (not committed yet).
+**Not verified:** PDF print preview by eye and a 60-minute session expiry (see "Not verified" below).
 API details: [API.md](API.md) §6–§8 and §7a (billing).
 
 ## Decisions
@@ -45,20 +45,22 @@ Applied to the test database on every test run. The **development database** get
 - **Activity log**: adds `PRODUCT_CREATED`, `PRODUCT_UPDATED`, `BILL_CREATED`, `BILL_PAID`, `BILL_VOIDED`, `PAYMENT_METHOD_CREATED/UPDATED` (staff, product, stock, bills, expenses and suppliers are all audited; stock changes also live in the stock history).
 - Stock, suppliers, expenses, customer contacts and reports from the first part of Phase 6 are unchanged.
 
-## Test results (26 Nov 2026)
+## Test results (27 Nov 2026, after the browser verification fixes)
 
 | Check | Result |
 |---|---|
 | Backend `.\scripts\run-integration-tests.ps1` | **185 / 185** – 58 unit/web + 127 MySQL (new `BillingApiIT` 10; `SchemaMigrationIT` expects V1–V5 and 20 tables) |
 | `BillingApiIT` covers | role table (cashier creates, can't void or manage methods; customers/visitors refused); bill with repeated lines merged, totals 466.50 − 46.65 = 419.85, change 80.15, stock and movements; validation (discount > 20%, received < total, inactive method/product, unknown product); idempotent replay; **10 parallel bills against 3 in stock → 3 saved, 7 refused (409), unique numbers, stock 0**; void restores stock once and is refused twice; pending → paid; **invoice PDF text** (number, Rs. amounts, Cash, Paid, no GST/tax); customer purchase history; billing/product-sales reports and dashboard equal SQL, voided excluded |
-| Frontend `npm test` | **57 / 57** (new `billing.test.jsx` 10: paise arithmetic and 20% cap; POS stock caps, active-only products and methods, one save on double click, request key reused on retry, stock conflict message, cashier adds customer; bill history totals, cashier can't void, owner void needs reason, filters; billing report revenue/no profit with CSV + PDF links) |
+| Frontend `npm test` | **65 / 65** (+8 regression tests in `verificationFixes.test.jsx`); earlier **57 / 57** (new `billing.test.jsx` 10: paise arithmetic and 20% cap; POS stock caps, active-only products and methods, one save on double click, request key reused on retry, stock conflict message, cashier adds customer; bill history totals, cashier can't void, owner void needs reason, filters; billing report revenue/no profit with CSV + PDF links) |
 | `npm run lint` / `npm run build` | clean |
+| Browser verification | **done** – see [PHASE_5_6_VERIFICATION.md](PHASE_5_6_VERIFICATION.md) |
 | Owner bootstrap (test database) | verified: started with no OWNER → "OWNER account created from the BOOTSTRAP_OWNER_* settings"; throwaway account deleted afterwards (0 rows left), its password file removed, clipboard cleared; password never printed |
 
 ## Not verified
 
-- **Logged-in admin in a real browser** – the 15 workflows (POS, bill history, void, invoice print/PDF, customers, reports, dashboard, inventory, suppliers, settings, staff, roles) and layouts at desktop, tablet and mobile widths. **NOT VERIFIED**: the assistant was not allowed to read the generated test password, the browser pane ignored a simulated paste, and the manual login did not reach the test backend; you chose to skip. The behaviour is covered by the API and component tests above, but nothing was checked by eye.
-- V5 on the development database (applies at the next backend start).
+- Visual print preview of the PDF invoice and report PDFs (the in-app browser downloads PDFs instead of showing them). The PDF **text** was checked: numbers, lines, totals, payment, VOIDED banner, no GST/tax/licence.
+- Waiting 60 minutes for a session to expire (covered by automated tests only).
+- V5 on the development database (applies at the next backend start; the browser check used the test database by your choice).
 
 ## Known limitations
 

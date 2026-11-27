@@ -14,7 +14,7 @@ import { useAuth } from '../../hooks/useAuth.js';
 import { useToast } from '../hooks/useToast.js';
 import { adminService } from '../adminService.js';
 import { canEdit } from '../roles.js';
-import { fmtDateTime, fmtMoney } from '../format.js';
+import { fmtDateTime, fmtMoney, plural } from '../format.js';
 import { Badge } from '../components/Badges.jsx';
 import { formErrorMessage, serverFieldErrors, validateName, validatePhone } from '../../utils/authValidation.js';
 
@@ -105,7 +105,7 @@ function PurchaseHistory({ customer, onClose }) {
                 <li key={b.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                   <div className="min-w-0">
                     <Link to={`/admin/bills?search=${encodeURIComponent(b.billNumber)}`} className="font-medium text-orange-600 hover:underline">{b.billNumber}</Link>
-                    <p className="text-xs text-slate-500">{fmtDateTime(b.createdAt)} · {b.itemCount} items · {b.paymentMethod}</p>
+                    <p className="text-xs text-slate-500">{fmtDateTime(b.createdAt)} · {plural(b.itemCount, 'item')} · {b.paymentMethod}</p>
                   </div>
                   <div className="shrink-0 text-right">
                     <p className={`font-semibold ${b.status === 'VOIDED' ? 'text-slate-400 line-through' : ''}`}>{fmtMoney(b.total)}</p>

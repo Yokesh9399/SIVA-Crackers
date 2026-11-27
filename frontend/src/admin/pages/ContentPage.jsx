@@ -234,7 +234,7 @@ function HomepageText() {
 export default function ContentPage() {
   return (
     <>
-      <AdminPageHeader title="Website Content" description="What visitors see on the homepage." crumbs={[{ label: 'Website Content' }]} />
+      <AdminPageHeader title="Homepage Management" description="What visitors see on the homepage." crumbs={[{ label: 'Homepage Management' }]} />
       <div className="grid gap-6 xl:grid-cols-2">
         <Banners />
         <HomepageText />

@@ -61,3 +61,16 @@ export function canEdit(role) {
 export function homeFor(role) {
   return RUN_SHOP.includes(role) ? '/admin' : '/admin/billing';
 }
+
+/**
+ * Where to go after logging in: the page that was asked for when this role may open it, otherwise the
+ * role's start page (e.g. a cashier is never sent to the previous user's Staff page).
+ */
+export function startPageFor(role, path) {
+  if (!role) return path || '/admin';
+  if (!path || path === '/admin') return homeFor(role);
+  const pathname = path.split(/[?#]/)[0];
+  const section = ADMIN_SECTIONS.filter((s) => !s.end && (pathname === s.to || pathname.startsWith(`${s.to}/`)))
+    .sort((a, b) => b.to.length - a.to.length)[0];
+  return section && section.roles.includes(role) ? path : homeFor(role);
+}

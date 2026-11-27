@@ -13,7 +13,7 @@ import Skeleton from '../../components/ui/Skeleton.jsx';
 import { useAsync } from '../../hooks/useAsync.js';
 import { useToast } from '../hooks/useToast.js';
 import { adminService } from '../adminService.js';
-import { daysAgoIst, fmtDate, fmtDateTime, fmtMoney, todayIst } from '../format.js';
+import { daysAgoIst, fmtDate, fmtDateTime, fmtMoney, todayIst, plural } from '../format.js';
 import { formErrorMessage, serverFieldErrors } from '../../utils/authValidation.js';
 
 const LABELS = { categoryId: 'Category', expenseDate: 'Date', amount: 'Amount', description: 'Description', paidTo: 'Paid to', reference: 'Bill / receipt no.', notes: 'Notes', reason: 'Reason', name: 'Name' };
@@ -261,7 +261,7 @@ export default function ExpensesPage() {
 
       {list.data && (
         <div className="admin-card mb-4 flex flex-wrap items-center gap-x-6 gap-y-1 p-4">
-          <p><span className="text-2xl font-extrabold">{fmtMoney(list.data.activeTotal)}</span> <span className="text-sm text-slate-500">total of {list.data.activeCount} active expenses in this view</span></p>
+          <p><span className="text-2xl font-extrabold">{fmtMoney(list.data.activeTotal)}</span> <span className="text-sm text-slate-500">total of {plural(list.data.activeCount, 'active expense')} in this view</span></p>
           <p className="text-xs text-slate-500">Cancelled expenses are not counted.</p>
         </div>
       )}

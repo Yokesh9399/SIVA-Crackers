@@ -257,12 +257,20 @@ class AuthApiIT extends AbstractApiIT {
     }
 
     @Test
-    @DisplayName("Logout: 204 and the session cookie is deleted (Max-Age=0)")
+    @DisplayName("Logout: 204, the cookie is deleted (Max-Age=0) and the old session token no longer works on the server")
     void logout() throws Exception {
         Cookie c = loginAs("bye@example.test", Role.CUSTOMER);
+        mvc.perform(get("/api/auth/me").cookie(c)).andExpect(status().isOk());
         MvcResult r = mvc.perform(post("/api/auth/logout").cookie(c).with(csrf()).with(fromIp()))
                 .andExpect(status().isNoContent()).andReturn();
         assertThat(sessionHeader(r)).startsWith("SIVA_SESSION=;").contains("Max-Age=0", "HttpOnly", "Path=/api");
+        // A copy of the cookie kept from before the logout is refused (found in the browser check of 27 Nov 2026)
+        mvc.perform(get("/api/auth/me").cookie(c)).andExpect(status().isUnauthorized());
+
+        Cookie staff = loginAs("bye-staff@example.test", Role.CASHIER);
+        mvc.perform(get("/api/admin/bills").cookie(staff)).andExpect(status().isOk());
+        mvc.perform(post("/api/auth/logout").cookie(staff).with(csrf()).with(fromIp())).andExpect(status().isNoContent());
+        mvc.perform(get("/api/admin/bills").cookie(staff)).andExpect(status().isUnauthorized());
     }
 
     @Test

@@ -46,7 +46,11 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (credentials) => setUser(await authService.login(credentials)), [setUser]);
-  const staffLogin = useCallback(async (credentials) => setUser(await authService.staffLogin(credentials)), [setUser]);
+  const staffLogin = useCallback(async (credentials) => {
+    const signedIn = await authService.staffLogin(credentials);
+    setUser(signedIn);
+    return signedIn;
+  }, [setUser]);
   const register = useCallback(async (details) => setUser(await authService.register(details)), [setUser]);
   const logout = useCallback(async () => {
     try {

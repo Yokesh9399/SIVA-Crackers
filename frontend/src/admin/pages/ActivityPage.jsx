@@ -11,6 +11,7 @@ import { fmtDateTime } from '../format.js';
 const AREAS = [
   ['', 'Everything'], ['STAFF', 'Staff'], ['PRODUCT', 'Products'], ['CATEGORY', 'Categories'], ['BRAND', 'Brands'],
   ['SUPPLIER', 'Suppliers'], ['EXPENSE', 'Expenses'], ['EXPENSE_CATEGORY', 'Expense categories'], ['CUSTOMER', 'Customers'],
+  ['BILL', 'Bills'], ['PAYMENT_METHOD', 'Payment methods'],
 ];
 
 const ACTION_TEXT = (a) => a.toLowerCase().replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
@@ -24,9 +25,9 @@ export default function ActivityPage() {
   return (
     <>
       <AdminPageHeader
-        title="Activity log"
+        title="Activity Log"
         description="Sensitive changes with the staff member who made them. Stock changes are listed in the stock history."
-        crumbs={[{ label: 'Activity log' }]}
+        crumbs={[{ label: 'Activity Log' }]}
       />
       <label className="mb-4 block max-w-xs text-sm font-medium">Area
         <select className="admin-input mt-1" value={area} onChange={(e) => { setArea(e.target.value); setPage(1); }}>
@@ -38,7 +39,7 @@ export default function ActivityPage() {
       ) : !log.data ? (
         <div className="space-y-2">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-12" />)}</div>
       ) : log.data.totalElements === 0 ? (
-        <EmptyState title="Nothing recorded yet" message="Changes to staff, suppliers, expenses, customers and deletions appear here." />
+        <EmptyState title="Nothing recorded yet" message="Changes to staff, products, suppliers, expenses, customers, bills and payment methods appear here." />
       ) : (
         <>
           <ol className="admin-card divide-y divide-slate-100">
